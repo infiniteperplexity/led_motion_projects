@@ -38,23 +38,25 @@ int nLEDs = 8;
 // Chose 2 pins for output; can be any valid output pins:
 int imuPower = 16;
 int imuGround = 17;
-int ledGround = 20;
-int dataPin  = 21;
-int clockPin = 22;
-int ledPower = 23;
-LPD8806 strip = LPD8806(nLEDs, dataPin, clockPin);
+int clockPin = 6;
+int dataPin1  = 7;
+int dataPin2 = 8;
+int dataPin3 = 9;
+int dataPin4 = 10;
+int dataPin5 = 11;
+int switchPin = 12;
+int ledPin = 13;
+LPD8806 strip = LPD8806(nLEDs, dataPin1, clockPin);
 
 
 void setup() {
   // set up pins
   pinMode(imuPower, OUTPUT);
   pinMode(imuGround, OUTPUT);
+  pinMode(switchPin, INPUT);
+  pinMode(ledPin, OUTPUT);
   digitalWrite(imuPower, HIGH);
   digitalWrite(imuGround, LOW);
-  pinMode(ledPower, OUTPUT);
-  pinMode(ledGround, OUTPUT);
-  digitalWrite(ledPower, HIGH);
-  digitalWrite(ledGround, LOW);
   delay(2500);
   Serial.begin(115200);
   // begin I2C communication with IMU
@@ -106,5 +108,10 @@ void paint() {
   int b = map(10*abs(z),0,100*PI,0,127);
   for(uint8_t i=0; i<nLEDs; i++) {
     strip.setPixelColor(i,r,g,b);
+  }
+  if (digitalRead(switchPin)==HIGH) {
+   digitalWrite(ledPin, HIGH); 
+  } else {
+    digitalWrite(ledPin, LOW);
   }
 }
