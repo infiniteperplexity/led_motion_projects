@@ -46,8 +46,11 @@ int dataPin4 = 10;
 int dataPin5 = 11;
 int switchPin = 12;
 int ledPin = 13;
-LPD8806 strip = LPD8806(nLEDs, dataPin1, clockPin);
-
+LPD8806 strip1 = LPD8806(nLEDs, dataPin1, clockPin);
+LPD8806 strip2 = LPD8806(nLEDs, dataPin2, clockPin);
+LPD8806 strip3 = LPD8806(nLEDs, dataPin3, clockPin);
+LPD8806 strip4 = LPD8806(nLEDs, dataPin4, clockPin);
+LPD8806 strip5 = LPD8806(nLEDs, dataPin5, clockPin);
 
 void setup() {
   // set up pins
@@ -74,7 +77,11 @@ void loop() {
     Dead_Reckon();
     readings();
     paint();
-    strip.show();
+    strip1.show();
+    strip2.show();
+    strip3.show();
+    strip4.show();
+    strip5.show();
   }
 }
 
@@ -107,7 +114,11 @@ void paint() {
   int g = map(10*abs(y),0,100*PI,0,127);
   int b = map(10*abs(z),0,100*PI,0,127);
   for(uint8_t i=0; i<nLEDs; i++) {
-    strip.setPixelColor(i,r,g,b);
+    strip1.setPixelColor(i,r,g,b);
+    strip2.setPixelColor(i,r,g,b);
+    strip3.setPixelColor(i,r,g,b);
+    strip4.setPixelColor(i,r,g,b);
+    strip5.setPixelColor(i,r,g,b);
   }
   if (digitalRead(switchPin)==HIGH) {
    digitalWrite(ledPin, HIGH); 
