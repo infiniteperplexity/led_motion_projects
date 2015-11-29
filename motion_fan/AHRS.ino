@@ -375,15 +375,13 @@ void Matrix_Multiply(float a[3][3], float b[3][3],float mat[3][3])
     }
   }
 }
-
+//Is this code I added myself?  I think so.
 void Measure_Shake() {
         shake = sqrt(pow(AN[0] - lastAcc[0],2) + pow(AN[1] - lastAcc[1],2) + pow(AN[2] - lastAcc[2],2));
         for(int i=0; i<3; i++) {
                 lastAcc[i] = AN[i];
         }
 }
-
-float lambda = 0.8;
 
 float lowpass(float n, float p) {
   if (abs(n)>p) {
@@ -393,6 +391,7 @@ float lowpass(float n, float p) {
   }
 }
 void Dead_Reckon() {
+        float lambda = 0.8;
         Vector_by_Matrix(Accel_Vector, DCM_Matrix, trueAcc);
         trueAcc[2] += GRAVITY*SENSOR_SIGN[5];
         for(int i=0; i<3; i++) {

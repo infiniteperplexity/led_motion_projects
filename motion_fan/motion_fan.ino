@@ -39,7 +39,7 @@ int nLEDs = 8;
 int imuPower = 16;
 int imuGround = 17;
 int clockPin = 6;
-int dataPin1  = 7;
+int dataPin1 = 7;
 int dataPin2 = 8;
 int dataPin3 = 9;
 int dataPin4 = 10;
@@ -64,7 +64,11 @@ void setup() {
   Serial.begin(115200);
   // begin I2C communication with IMU
   AHRS_Init();
-  strip.begin();
+  strip1.begin();
+  strip2.begin();
+  strip3.begin();
+  strip4.begin();
+  strip5.begin();
   timer=millis();
   delay(20);
 }
@@ -75,54 +79,53 @@ void loop() {
     AHRS_Update();
     Measure_Shake();
     Dead_Reckon();
+    Read_Switch();
     readings();
-    paint();
-    strip1.show();
-    strip2.show();
-    strip3.show();
-    strip4.show();
-    strip5.show();
+    //paint();
   }
 }
-
+  `
 void readings() {
-  //Serial.print(pitch);
-  //Serial.print(" ");
-  //Serial.print(roll);
-  //Serial.print(" ");
-  //Serial.print(yaw);
-  //Serial.println("");
-  //Serial.println(shake);
-  //Serial.print(trueAcc[0]);
-  //Serial.print(velocity[0]);
-  Serial.print(position[0]);
-  Serial.print(" ");
-  //Serial.print(trueAcc[1]);
-  //Serial.print(velocity[1]);
-  Serial.print(position[1]);
-  Serial.print(" ");
-  //Serial.println(trueAcc[2]);
-  //Serial.println(velocity[2]);
-  Serial.println(position[2]);
+  Serial.print(" shake: ");
+  Serial.print(shake);
+  Serial.print(" gyro x:");
+  Serial.print(gyro_x);
+  Serial.print(" gyro y:");
+  Serial.print(gyro_y);
+  Serial.print(" gyro z:");
+  Serial.print(gyro_z);
+  Serial.println("");
+}
+
+int mode = 1;
+int nModes = 4;
+void Read_Switch() {
+  static bool readState = LOW;
+  bool reading = digitalRead(switchPin);
+  if (reading==HIGH && readState==LOW) {
+    mode = (mode+1)%nModes;
+  }
+  readState = reading; 
 }
 
 void paint() {
-  //int r = map(100*pitch,-50*PI,50*PI,0,127);
-  //int g = map(100*abs(roll),0,100*PI,0,127);
-  //int b = map(100*abs(yaw),0,100*PI,0,127);
-  int r = map(abs(shake),-50*PI,50*PI,0,127);
-  int g = map(10*abs(y),0,100*PI,0,127);
-  int b = map(10*abs(z),0,100*PI,0,127);
-  for(uint8_t i=0; i<nLEDs; i++) {
-    strip1.setPixelColor(i,r,g,b);
-    strip2.setPixelColor(i,r,g,b);
-    strip3.setPixelColor(i,r,g,b);
-    strip4.setPixelColor(i,r,g,b);
-    strip5.setPixelColor(i,r,g,b);
+  //eventually this should use function pointers
+  switch(mode) {
+    case 1:
+      shake_test();
+    break;
+    case 2:
+      gyro_test();
+    case 3:
+      orient_test();
+    break;
+    default: // typically case 0
+      no_pattern();
+    break;
   }
-  if (digitalRead(switchPin)==HIGH) {
-   digitalWrite(ledPin, HIGH); 
-  } else {
-    digitalWrite(ledPin, LOW);
-  }
+  strip1.show();
+  strip2.show();
+  strip3.show();
+  strip4.show();
+  strip5.show();  
 }
