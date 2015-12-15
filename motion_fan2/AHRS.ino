@@ -307,8 +307,8 @@ void Matrix_update(void)
 
 void Euler_angles(void)
 {
-  pitch = -asin(DCM_Matrix[2][0]);
-  roll = atan2(DCM_Matrix[2][1],DCM_Matrix[2][2]);
+  roll = -asin(DCM_Matrix[2][0]);
+  pitch = atan2(DCM_Matrix[2][1],DCM_Matrix[2][2]);
   yaw = atan2(DCM_Matrix[1][0],DCM_Matrix[0][0]);
 }
 
@@ -394,11 +394,11 @@ float lowpass(float n, float p) {
   }
 }
 void Dead_Reckon() {
-        float lambda = 0.8;
         Vector_by_Matrix(Accel_Vector, DCM_Matrix, trueAcc);
         trueAcc[2] += GRAVITY*SENSOR_SIGN[5];
         for(int i=0; i<3; i++) {
                 trueAcc[i] = lowpass(trueAcc[i],20);
+        float lambda = 0.8;
                 velocity[i] += G_Dt*trueAcc[i];
                 position[i] += G_Dt*velocity[i];
                 //alpha-correct velocity

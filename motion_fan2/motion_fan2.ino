@@ -9,8 +9,8 @@ long timer_old;
 long timer24=0; //Second timer used to print values
 
 // Euler angles
-float pitch; // -PI/2 to PI/2, no wrap
-float roll; // -PI to PI, wraps around
+float pitch; // -PI to PI, wraps around
+float roll; // -PI/2 to PI/2, no wrap but yaw flips
 float yaw; // -PI to PI, wraps around
 
 //other readings
@@ -48,12 +48,12 @@ int switchPin = 12;
 int ledPin = 13;
 LPD8806 strip1 = LPD8806(nLEDs, dataPin1, clockPin);
 LPD8806 strip2 = LPD8806(nLEDs, dataPin2, clockPin);
+  // set up pins
 LPD8806 strip3 = LPD8806(nLEDs, dataPin3, clockPin);
 LPD8806 strip4 = LPD8806(nLEDs, dataPin4, clockPin);
 LPD8806 strip5 = LPD8806(nLEDs, dataPin5, clockPin);
 
 void setup() {
-  // set up pins
   pinMode(imuPower, OUTPUT);
   pinMode(imuGround, OUTPUT);
   pinMode(switchPin, INPUT);
@@ -77,9 +77,10 @@ void loop() {
     timer_old = timer;
     timer=millis();
     AHRS_Update();
-    Measure_Shake();
-    Dead_Reckon();
+    //Measure_Shake();
+    //Dead_Reckon();
     Read_Switch();
+    update_buffers();
     readings();
     paint();
   }
@@ -122,16 +123,16 @@ void paint() {
 }
 
 void readings() {
-  Serial.print(" mode: ");
-  Serial.print(mode);
+  //Serial.print(" mode: ");
+  //Serial.print(mode);
   //Serial.print(" shake: ");
   //Serial.print(shake);
-  //Serial.print(" dip: ");
-  //Serial.print(dip);
-  //Serial.print("tilt: ");
-  //Serial.print(tilt);
-  //Serial.print(" spin: ");
-  //Serial.print(spin);
+  Serial.print(" yaw: ");
+  Serial.print(buff_yaw);
+  Serial.print(" roll: ");
+  Serial.print(buff_roll);
+  Serial.print(" pitch: ");
+  Serial.print(buff_pitch);
   Serial.println("");
 }
 
