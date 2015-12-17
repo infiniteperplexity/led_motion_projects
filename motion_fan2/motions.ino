@@ -25,12 +25,9 @@
 // layer 1
 
 static int BUFFSIZE = 10;
-float yaw_buffer[BUFFSIZE] = [0,0,0,0,0,0,0,0,0,0];
-float roll_buffer[BUFFSIZE] = [0,0,0,0,0,0,0,0,0,0];
-float pitch_buffer[BUFFSIZE] = [0,0,0,0,0,0,0,0,0,0];
-float buff_yaw;
-float buff_pitch;
-float buff_roll;
+float yaw_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
+float roll_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
+float pitch_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
 void update_buffers() {
   //maybe should wait until filled
   //maybe needs to deal with wrapping
@@ -56,7 +53,41 @@ void update_buffers() {
   buff_roll/=BUFFSIZE;
 }
 
+//we need one that checks for the biggest angle in a buffer and the smallest
+//we also need to check the difference between two angles and whether it clears a threshold
+//maybe we can return multiple values from the function on the buffer?
+
+float[3] compare(float a, float b) {
+  if (a>b) {
+    if (a-b<PI) {
+      return {b,a,(a-b)/2};  
+    } else {
+      return {a,b,(b-a)/2};
+    }
+  } else {
+    if (b-a<PI) {
+      return {a,b,(b-a)/2};  
+    } else {
+      return {b,a,(a-b)/2};
+    }
+  }
+}
+float[3] angle_buffer(float[] b) {
+  float r[3] = {b[0],b[0],b[0]}
+  for (int i=1; i<b.length; i++) {
+    if (b[i]<r[0]) {
+      r[0] = b[i];
+    }
+    if (b[i]>r[1]) {
+      r[1] = b[i];
+    }
+  }
+  r[2] = compare(r[0],r[1])[2];
+  return r;
+}
+
 /*
+ }
 // layer 2
 
 static int LONGSIZE = 60;

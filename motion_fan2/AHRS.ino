@@ -304,12 +304,12 @@ void Matrix_update(void)
     } 
   }
 }
-
 void Euler_angles(void)
 {
   roll = -asin(DCM_Matrix[2][0]);
   pitch = atan2(DCM_Matrix[2][1],DCM_Matrix[2][2]);
   yaw = atan2(DCM_Matrix[1][0],DCM_Matrix[0][0]);
+  roll = (yaw>=0) ? (roll+PI/2) : (-roll-PI/2);
 }
 
 void AHRS_Update() {

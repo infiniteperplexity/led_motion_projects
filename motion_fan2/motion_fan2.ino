@@ -12,7 +12,9 @@ long timer24=0; //Second timer used to print values
 float pitch; // -PI to PI, wraps around
 float roll; // -PI/2 to PI/2, no wrap but yaw flips
 float yaw; // -PI to PI, wraps around
-
+float buff_yaw;
+float buff_pitch;
+float buff_roll;
 //other readings
 float spin;
 float dip;
