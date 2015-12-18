@@ -1,68 +1,4 @@
-////okay...say we wanted to detect "in-plane" vs "break-plane"
-// yaw is irrelevant
-// you'd ideally want to take the "max" of roll and pitch
-// pitch goes -PI/2 to PI/2 and wraps
-// roll goes -PI to PI and doesn't wrap
-// so for pitch, you'd do...ugh...well...from 0 you'd do abs(change)
-// for roll you'd also...well...depends what it means by "does't wrap"
-
-// so whata layers do we need?
-//// we need first-degree buffering to eliminate pure noise
-//  - seems simple...we do a rolling average, or else one of those other filters from the signals class
-//// then we need an algorithm to lock in the "home plane"
-//  - so I figure we take the min and max of the rolling average.  and...we need to re-map this somehow.  we need a function...i dunno.
-//    anyway, if the min and max are close enough together, we "lock in"
-//// finally we need to detect a "plane break"
-//  - that's when we're outside the bounds of the plane in term of either pitch or roll...for a long enough time.
-//// what about "opposite plane"?  I think there we'd simply detect if we were in the opposite plane in terms of either pitch or roll.
-
-// so I can't actually recall what "doesn't wrap" means.  I assume it means it bounces back down, but...that's terrible and useless.
-//unfortunately this impacts everything
-
-//so...
-
-
 // layer 1
-
-/*
- def unwind(a):
-  import math
-  while a>math.pi:
-    a-=math.pi
-  while a<-math.pi:
-    a+=math.pi
-  return a
-
-def compare(a,b):
-  import math
-  r = [0,0,0]
-  if (a>b):
-    if (a-b<math.pi):
-      print("a")
-      r[0] = b
-      r[1] = a
-      r[2] = unwind((a+b)/2)
-    else:
-      print("b")
-      r[0] = a
-      r[1] = b
-      r[2] = unwind((2*math.pi+a+b)/2)
-  else:
-    if (b-a<math.pi):
-      print("c")
-      r[0] = a
-      r[1] = b
-      r[2] = unwind((a+b)/2)
-    else:
-      print("d")
-      r[0] = b
-      r[1] = a
-      r[2] = unwind((2*math.pi+a+b)/2)
-  return r
-
-  */
- */
-
 static int BUFFSIZE = 10;
 float yaw_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
 float roll_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -92,57 +28,56 @@ void update_buffers() {
   buff_roll/=BUFFSIZE;
 }
 
-//we need one that checks for the biggest angle in a buffer and the smallest
-//we also need to check the difference between two angles and whether it clears a threshold
-//maybe we can return multiple values from the function on the buffer?
+float unwind(float a) {
+  while (a>=PI) {
+    a-=PI;
+  }
+  while (a<=-PI) {
+    a+=PI;
+  }
+}
 
+//returns difference and average
 float * compare(float a, float b) {
-  static float r[3];
+  static float r[2];
   if (a>b) {
     if (a-b<PI) {
-      r[0] = b;
-      r[1] = a;
-      r[2] = (a-b)/2;
+      r[0] = a-b;
+      r[1] = unwind((a+b)/2);
     } else {
-      r[0] = a;
-      r[1] = b;
-      r[2] = (b-a)/2;
+      r[0] = 2*PI+b-a;
+      r[1] = unwind((2*PI+a+b)/2);
     }
   } else {
     if (b-a<PI) {
-      r[0] = a;
-      r[1] = b;
-      r[2] = (b-a)/2; 
+      r[0] = b-a;
+      r[1] = unwind((a+b)/2);
     } else {
-      r[0] = b;
-      r[1] = a;
-      r[2] = (a-b)/2;
+      r[0] = 2*PI+a-b;
+      r[1] = unwind((2*PI+a+b)/2);
     }
   }
   return r;
 }
-float * angle_buffer(float b[], int len) {
-  static float r[3] = {b[0],b[0],b[0]};
+float * bounds(float b[], int len) {
+  float mx = b[0];
+  float mn = b[0];
   for (int i=1; i<len; i++) {
-    if (b[i]<r[0]) {
-      r[0] = b[i];
+    if (b[i]<mn) {
+      mn = b[i];
     }
-    if (b[i]>r[1]) {
-      r[1] = b[i];
+    if (b[i]>mx) {
+      mx = b[i];
     }
   }
-  r[2] = compare(r[0],r[1])[2];
-  return r;
+  float r[2] = {mn,mx};
 }
 
-/*
- }
 // layer 2
-
 static int LONGSIZE = 60;
-float[LONGSIZE] long_yaw = [0,0,0,0,0,0,0,0,0,0];
-float[LONGSIZE] long_roll = [];
-float[LONGSIZE] long_pitch = [];
+float long_yaw[60];
+float long_roll[60];
+float long_pitch[60];
 float max_roll, max_yaw, max_pitch, min_roll, min_yaw, min_pitch;
 bool in_plane = true;
 float[2] center_plane = [0,0];
@@ -159,20 +94,23 @@ void long_buffers() {
   long_pitch[LONGSIZE-1] = buff_pitch;
   long_roll[LONGSIZE-1] = buff_roll;
   // I doubt this function exists in C
-  max_yaw = max(long_yaw);
-  max_pitch = max(long_pitch);
-  max_roll = max(long_roll);
-  min_yaw = min(long_yaw);
-  min_pitch = min(long_pitch);
-  min_roll = min(long_roll);
-  if (max_pitch - min_pitch < plane_threshold && max_roll - min_roll < plane_threshold) {
+  float yaws[2], pitches[2], rolls[2];
+  yaws = bounds(long_yaw);
+  yaws = compare(yaws[0],yaws[1]);
+  pitches = bounds(long_pitch);
+  pitches = compare(pitches[0],pitches[1]);
+  rolls = bounds(long_rolls);
+  rolls = compare(rolls[0],rolls[1]);
+  if (pitches[0] < plane_threshold && rolls[0] < plane_threshold) {
     in_plane = true;
-    center_plane = [(max_pitch + min_pitch)/2,(max_roll+min_roll)/2];
+    center_plane[0] = pitches[1];
+    center_plane[1] = rolls[1];
   } else {
     in_plane = false;
-    if ((max_pitch + min_pitch)/2 - center_plane[0] > PI/2) || (max_roll + min_roll)/2 - center_plane[1] > PI/2) {
+    if (pitches[1] - center_plane[0] > PI/2-plane_threshold) || rolls[1] - center_plane[1] > PI/2-plane_threshold) {
       plane_flip = true;
+      center_plane[0] = pitches[1];
+      center_plane[1] = rolls[1];
     }
   }
 }
-*/
