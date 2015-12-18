@@ -24,6 +24,45 @@
 
 // layer 1
 
+/*
+ def unwind(a):
+  import math
+  while a>math.pi:
+    a-=math.pi
+  while a<-math.pi:
+    a+=math.pi
+  return a
+
+def compare(a,b):
+  import math
+  r = [0,0,0]
+  if (a>b):
+    if (a-b<math.pi):
+      print("a")
+      r[0] = b
+      r[1] = a
+      r[2] = unwind((a+b)/2)
+    else:
+      print("b")
+      r[0] = a
+      r[1] = b
+      r[2] = unwind((2*math.pi+a+b)/2)
+  else:
+    if (b-a<math.pi):
+      print("c")
+      r[0] = a
+      r[1] = b
+      r[2] = unwind((a+b)/2)
+    else:
+      print("d")
+      r[0] = b
+      r[1] = a
+      r[2] = unwind((2*math.pi+a+b)/2)
+  return r
+
+  */
+ */
+
 static int BUFFSIZE = 10;
 float yaw_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
 float roll_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -57,24 +96,34 @@ void update_buffers() {
 //we also need to check the difference between two angles and whether it clears a threshold
 //maybe we can return multiple values from the function on the buffer?
 
-float[3] compare(float a, float b) {
+float * compare(float a, float b) {
+  static float r[3];
   if (a>b) {
     if (a-b<PI) {
-      return {b,a,(a-b)/2};  
+      r[0] = b;
+      r[1] = a;
+      r[2] = (a-b)/2;
     } else {
-      return {a,b,(b-a)/2};
+      r[0] = a;
+      r[1] = b;
+      r[2] = (b-a)/2;
     }
   } else {
     if (b-a<PI) {
-      return {a,b,(b-a)/2};  
+      r[0] = a;
+      r[1] = b;
+      r[2] = (b-a)/2; 
     } else {
-      return {b,a,(a-b)/2};
+      r[0] = b;
+      r[1] = a;
+      r[2] = (a-b)/2;
     }
   }
+  return r;
 }
-float[3] angle_buffer(float[] b) {
-  float r[3] = {b[0],b[0],b[0]}
-  for (int i=1; i<b.length; i++) {
+float * angle_buffer(float b[], int len) {
+  static float r[3] = {b[0],b[0],b[0]};
+  for (int i=1; i<len; i++) {
     if (b[i]<r[0]) {
       r[0] = b[i];
     }
