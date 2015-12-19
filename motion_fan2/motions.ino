@@ -35,11 +35,11 @@ float unwind(float a) {
   while (a<=-PI) {
     a+=PI;
   }
+  return a;
 }
 
 //returns difference and average
-float * compare(float a, float b) {
-  static float r[2];
+void compare(float a, float b, float *r) {
   if (a>b) {
     if (a-b<PI) {
       r[0] = a-b;
@@ -57,9 +57,8 @@ float * compare(float a, float b) {
       r[1] = unwind((2*PI+a+b)/2);
     }
   }
-  return r;
 }
-float * bounds(float b[], int len) {
+void bounds(float b[], int len, float *r) {
   float mx = b[0];
   float mn = b[0];
   for (int i=1; i<len; i++) {
@@ -70,7 +69,8 @@ float * bounds(float b[], int len) {
       mx = b[i];
     }
   }
-  float r[2] = {mn,mx};
+  r[0] = mn;
+  r[1] = mx;
 }
 
 // layer 2
@@ -80,7 +80,8 @@ float long_roll[60];
 float long_pitch[60];
 float max_roll, max_yaw, max_pitch, min_roll, min_yaw, min_pitch;
 bool in_plane = true;
-float[2] center_plane = [0,0];
+bool plane_flip = false;
+float center_plane[2] = {0,0};
 static int plane_threshold = 0.5;
 void long_buffers() {
   //maybe should wait until filled
@@ -95,19 +96,19 @@ void long_buffers() {
   long_roll[LONGSIZE-1] = buff_roll;
   // I doubt this function exists in C
   float yaws[2], pitches[2], rolls[2];
-  yaws = bounds(long_yaw);
-  yaws = compare(yaws[0],yaws[1]);
-  pitches = bounds(long_pitch);
-  pitches = compare(pitches[0],pitches[1]);
-  rolls = bounds(long_rolls);
-  rolls = compare(rolls[0],rolls[1]);
+  bounds(long_yaw,LONGSIZE, yaws);
+  compare(yaws[0],yaws[1],yaws);
+  bounds(long_pitch,LONGSIZE,pitches);
+  compare(pitches[0],pitches[1],pitches);
+  bounds(long_roll,LONGSIZE,rolls);
+  compare(rolls[0],rolls[1],rolls);
   if (pitches[0] < plane_threshold && rolls[0] < plane_threshold) {
     in_plane = true;
     center_plane[0] = pitches[1];
     center_plane[1] = rolls[1];
   } else {
     in_plane = false;
-    if (pitches[1] - center_plane[0] > PI/2-plane_threshold) || rolls[1] - center_plane[1] > PI/2-plane_threshold) {
+    if (((pitches[1]-center_plane[0]) > (PI/2-plane_threshold)) || ((rolls[1]-center_plane[1]) > (PI/2-plane_threshold))) {
       plane_flip = true;
       center_plane[0] = pitches[1];
       center_plane[1] = rolls[1];
