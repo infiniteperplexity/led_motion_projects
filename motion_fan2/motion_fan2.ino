@@ -9,12 +9,15 @@ long timer_old;
 long timer24=0; //Second timer used to print values
 
 // Euler angles
+float upitch;
+float uroll;
+float uyaw;
 float pitch; // -PI to PI, wraps around
 float roll; // -PI/2 to PI/2, no wrap but yaw flips
 float yaw; // -PI to PI, wraps around
-float buff_yaw;
-float buff_pitch;
-float buff_roll;
+float buff_pitch = PI;
+float buff_yaw = PI;
+float buff_roll = PI;
 //other readings
 float spin;
 float dip;
@@ -82,8 +85,8 @@ void loop() {
     //Measure_Shake();
     //Dead_Reckon();
     Read_Switch();
-    update_buffers();
-    readings();
+    long_buffers();
+    //readings();
     paint();
   }
 }
@@ -130,11 +133,11 @@ void readings() {
   //Serial.print(" shake: ");
   //Serial.print(shake);
   Serial.print(" yaw: ");
-  Serial.print(buff_yaw);
+  Serial.print(uyaw);
   Serial.print(" roll: ");
-  Serial.print(buff_roll);
+  Serial.print(uroll);
   Serial.print(" pitch: ");
-  Serial.print(buff_pitch);
+  Serial.print(upitch);
   Serial.println("");
 }
 

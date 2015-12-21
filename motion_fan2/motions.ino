@@ -1,39 +1,10 @@
-// layer 1
-static int BUFFSIZE = 10;
-float yaw_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
-float roll_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
-float pitch_buffer[10] = {0,0,0,0,0,0,0,0,0,0};
-void update_buffers() {
-  //maybe should wait until filled
-  //maybe needs to deal with wrapping
-  for (int i = 0; i < BUFFSIZE-1; i++) {
-    yaw_buffer[i] = yaw_buffer[i+1];
-    pitch_buffer[i] = pitch_buffer[i+1];
-    roll_buffer[i] = roll_buffer[i+1];
-  }
-  yaw_buffer[BUFFSIZE-1] = yaw;
-  pitch_buffer[BUFFSIZE-1] = pitch;
-  roll_buffer[BUFFSIZE-1] = roll;
-  // I doubt this function exists in C
-  buff_yaw = 0;
-  buff_pitch = 0;
-  buff_roll = 0;
-  for (int i = 0; i<BUFFSIZE; i++) {
-    buff_yaw+=yaw_buffer[i];
-    buff_pitch+=pitch_buffer[i];
-    buff_roll+=roll_buffer[i];
-  }
-  buff_yaw/=BUFFSIZE;
-  buff_pitch/=BUFFSIZE;
-  buff_roll/=BUFFSIZE;
-}
-
+//angle utilities
 float unwind(float a) {
-  while (a>=PI) {
-    a-=PI;
+  while (a>=2*PI) {
+    a-=(2*PI);
   }
-  while (a<=-PI) {
-    a+=PI;
+  while (a<0) {
+    a+=(2*PI);
   }
   return a;
 }
@@ -73,6 +44,20 @@ void bounds(float b[], int len, float *r) {
   r[1] = mx;
 }
 
+
+// alternate layer 1...doesn't work for shit
+static int REGRESS = 10;
+void update_buffers() {
+  float x[2];
+  compare(buff_yaw,uyaw,x);
+  buff_yaw = unwind(buff_yaw+x[0]/REGRESS);
+  compare(buff_pitch,upitch,x);
+  buff_pitch = unwind(buff_pitch+x[0]/REGRESS);
+  compare(buff_roll,uroll,x);
+  buff_roll = unwind(buff_roll+x[0]/REGRESS);
+}
+
+// layer 1
 // layer 2
 static int LONGSIZE = 60;
 float long_yaw[60];
@@ -86,32 +71,38 @@ static int plane_threshold = 0.5;
 void long_buffers() {
   //maybe should wait until filled
   //maybe needs to deal with wrapping
-  for (int i = 0; i < BUFFSIZE-1; i++) {
+  for (int i = 0; i < LONGSIZE-1; i++) {
     long_yaw[i] = long_yaw[i+1];
     long_pitch[i] = long_yaw[i+1];
     long_roll[i] = long_roll[i+1];
   }
-  long_yaw[LONGSIZE-1] = buff_yaw;
-  long_pitch[LONGSIZE-1] = buff_pitch;
-  long_roll[LONGSIZE-1] = buff_roll;
+  long_yaw[LONGSIZE-1] = uyaw;
+  long_pitch[LONGSIZE-1] = upitch;
+  long_roll[LONGSIZE-1] = uroll;
   // I doubt this function exists in C
   float yaws[2], pitches[2], rolls[2];
   bounds(long_yaw,LONGSIZE, yaws);
+  Serial.println(yaws[0]);
   compare(yaws[0],yaws[1],yaws);
   bounds(long_pitch,LONGSIZE,pitches);
   compare(pitches[0],pitches[1],pitches);
   bounds(long_roll,LONGSIZE,rolls);
   compare(rolls[0],rolls[1],rolls);
+  //Serial.println(pitches[0]);
   if (pitches[0] < plane_threshold && rolls[0] < plane_threshold) {
     in_plane = true;
+    //Serial.println("in plane");
     center_plane[0] = pitches[1];
     center_plane[1] = rolls[1];
   } else {
     in_plane = false;
     if (((pitches[1]-center_plane[0]) > (PI/2-plane_threshold)) || ((rolls[1]-center_plane[1]) > (PI/2-plane_threshold))) {
       plane_flip = true;
+      //Serial.println("plane flip!");
       center_plane[0] = pitches[1];
       center_plane[1] = rolls[1];
+    } else {
+      //Serial.println("out of plane");
     }
   }
 }
