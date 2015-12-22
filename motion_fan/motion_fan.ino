@@ -2,7 +2,6 @@
 #include "definitions.h"
 long timer=0;   //general purpuse timer
 long timer_old;
-
 // Number of RGB LEDs in strand:
 int nLEDs = 8;
 int nStrips = 5;
