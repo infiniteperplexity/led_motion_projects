@@ -5,6 +5,7 @@ long timer_old;
 
 // Number of RGB LEDs in strand:
 int nLEDs = 8;
+int nStrips = 5;
 // Chose 2 pins for output; can be any valid output pins:
 int imuPower = 16;
 int imuGround = 17;
@@ -34,12 +35,10 @@ void setup() {
   delay(2500);
   Serial.begin(115200);
   // begin I2C communication with IMU
-  //AHRS_Init();
-  strip1.begin();
-  strip2.begin();
-  strip3.begin();
-  strip4.begin();
-  strip5.begin();
+  AHRS_Init();
+  for(int i=0; i<nStrips; i++) {
+    strips[i].begin();
+  }
   timer=millis();
   delay(20);
 }
@@ -49,12 +48,11 @@ void loop() {
     timer_old = timer;
     timer=millis();
     //AHRS_Update();
-    Measure_Shake();
-    //Dead_Reckon();
-    //Read_Switch();
-    //long_buffers();
+    //Measure_Shake();
+    Read_Switch();
     //readings();
     //paint();
+    rolling_angles();
   }
 }
 
@@ -85,11 +83,9 @@ void paint() {
       no_pattern();
     break;
   }
-  strip1.show();
-  strip2.show();
-  strip3.show();
-  strip4.show();
-  strip5.show();  
+  for(int i=0; i<nStrips; i++) {
+    strips[i].show();
+  }
 }
 
 void readings() {

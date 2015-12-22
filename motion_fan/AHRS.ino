@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "Wire.h"
 #include "L3G.h"
 #include "LSM303.h" //causes mysterious error

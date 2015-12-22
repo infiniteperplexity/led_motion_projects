@@ -92,4 +92,5 @@ extern float last_acc[3];
 extern float buff_pitch ;
 extern float buff_yaw;
 extern float buff_roll;
+void rolling_angles();
 
