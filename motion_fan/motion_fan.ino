@@ -46,17 +46,19 @@ void loop() {
   if((millis()-timer)>=20) {  // Main loop runs at 50Hz
     timer_old = timer;
     timer=millis();
-    //AHRS_Update();
-    //Measure_Shake();
+    AHRS_Update();
+    Measure_Shake();
     Read_Switch();
-    //readings();
-    //paint();
     rolling_angles();
+    plane_break();
+    reckon();
+    slide();
+    paint();
   }
 }
 
 int mode = 1;
-int nModes = 4;
+int nModes = 6;
 void Read_Switch() {
   static int readState = LOW;
   int reading = digitalRead(switchPin);
@@ -78,6 +80,12 @@ void paint() {
     case 3:
       orient_test();
     break;
+    case 4:
+      plane_test();
+      break;
+    case 5:
+      slide_test();
+    break;
     default: // typically case 0
       no_pattern();
     break;
@@ -85,19 +93,5 @@ void paint() {
   for(int i=0; i<nStrips; i++) {
     strips[i].show();
   }
-}
-
-void readings() {
-  //Serial.print(" mode: ");
-  //Serial.print(mode);
-  //Serial.print(" shake: ");
-  //Serial.print(shake);
-  Serial.print(" yaw: ");
-  Serial.print(uyaw);
-  Serial.print(" roll: ");
-  Serial.print(uroll);
-  Serial.print(" pitch: ");
-  Serial.print(upitch);
-  Serial.println("");
 }
 

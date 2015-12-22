@@ -28,9 +28,9 @@
 #define Kp_YAW 1.2
 #define Ki_YAW 0.00002
 #define OUTPUTMODE 1
-extern float pitch;
-extern float roll;
-extern float yaw;
+float pitch;
+float roll;
+float yaw;
 extern int SENSOR_SIGN[9];
 extern float G_Dt;
 extern int AN[6];
@@ -47,7 +47,7 @@ int magnetom_z;
 float c_magnetom_x;
 float c_magnetom_y;
 float c_magnetom_z;
-extern float MAG_Heading;
+float MAG_Heading;
 extern float Accel_Vector[3];
 extern float Gyro_Vector[3];
 extern float Omega_Vector[3];
@@ -87,10 +87,21 @@ void AHRS_Update();
 float upitch;
 float uroll;
 float uyaw;
+extern float vx;
+extern float vy;
+extern float vz;
+extern float bpitch;
+extern float broll;
+extern float byaw;
+extern bool in_plane;
+extern bool plane_flip;
 float shake;
 extern float last_acc[3];
-extern float buff_pitch ;
-extern float buff_yaw;
-extern float buff_roll;
 void rolling_angles();
+void plane_break();
+void slide();
+void reckon();
+bool slide_x;
+bool slide_y;
+bool slide_z;
 
