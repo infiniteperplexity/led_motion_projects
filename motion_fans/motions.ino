@@ -1,3 +1,14 @@
+float buff_pitch = PI;
+float buff_yaw = PI;
+float buff_roll = PI;
+float lastAcc[3]= {0,0,0};
+
+void Measure_Shake() {
+        shake = sqrt(pow(AN[0] - lastAcc[0],2) + pow(AN[1] - lastAcc[1],2) + pow(AN[2] - lastAcc[2],2));
+        for(int i=0; i<3; i++) {
+                lastAcc[i] = AN[i];
+        }
+}
 //angle utilities
 float unwind(float a) {
   while (a>=2*PI) {
