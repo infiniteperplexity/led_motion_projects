@@ -148,10 +148,14 @@ void plane_test() {
   int g;
   int b;
   static bool flipped = false;
-  Serial.print(" pitch diff: ");
-  Serial.print((abs(diff(upitch,bpitch))));
-  Serial.print(" roll diff: ");
-  Serial.print((abs(diff(uroll,broll))));
+  Serial.print(" upitch: ");
+  Serial.print(upitch);
+  Serial.print(" bpitch: ");
+  Serial.print(bpitch);
+  Serial.print(" uroll: ");
+  Serial.print(uroll);
+  Serial.print(" broll: ");
+  Serial.print(broll);
   Serial.println("");
   if (in_plane) {
     if (flipped != plane_flip) {
@@ -235,4 +239,5 @@ void slide_test() {
     }
   }
 }
+
 

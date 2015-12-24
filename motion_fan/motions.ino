@@ -49,6 +49,10 @@ float nudge(float a, float b, float k) {
 }
 
 void rolling_angles() {
+  uyaw = yaw + PI;
+  upitch = roll + PI;
+  uroll = (yaw>=0) ? (pitch+PI/2) : (1.5*PI-pitch);
+  // nudge is pulling inexhorably toward teetering across 0/2PI
   if (bpitch == -99) {
     bpitch = upitch;
   } else {
@@ -82,6 +86,7 @@ void plane_break() {
 
 
 void reckon() {
+  //these vectors are definitely not adjusted for gravity, but they do seem to be the relative directions
   static int lambda = 0.8;
   vx = lambda*vx + G_Dt*accel_x;
   vy = lambda*vy + G_Dt*accel_y;
