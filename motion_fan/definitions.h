@@ -61,6 +61,8 @@ extern byte gyro_sat;
 extern float DCM_Matrix[3][3]; 
 extern float Update_Matrix[3][3];
 extern float Temporary_Matrix[3][3];
+extern float G[3];
+extern float trueAcc[3];
 L3G gyro;
 LSM303 compass;
 float Vector_Dot_Product(float vector1[3],float vector2[3]);
@@ -104,5 +106,7 @@ void reckon();
 bool slide_x;
 bool slide_y;
 bool slide_z;
+
+
 
 

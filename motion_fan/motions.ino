@@ -5,9 +5,20 @@ float vx = 0;
 float vy = 0;
 float vz = 0;
 float lastAcc[3]= {0,0,0};
+float trueAcc[3] = {0,0,0};
 bool in_plane = true;
 bool plane_flip = false;
 
+void Vector_by_Matrix(float a[3], float b[3][3], float v[3]) {
+  float op[3];
+  for(int y=0; y<3; y++) {
+    for(int w=0; w<3; w++) {
+      op[w]=a[w]*b[y][w];
+    }
+    v[y]=0;
+    v[y]=op[0]+op[1]+op[2];
+  }
+}
 void Measure_Shake() {
         shake = sqrt(pow(AN[0] - lastAcc[0],2) + pow(AN[1] - lastAcc[1],2) + pow(AN[2] - lastAcc[2],2));
         for(int i=0; i<3; i++) {
@@ -45,7 +56,7 @@ float diff(float a, float b) {
 }
 // nudge A one Kth of the way toward B
 float nudge(float a, float b, float k) {
-  return unwind(a + diff(a,b)/k);
+  return unwind(a + diff(b,a)/k);
 }
 
 void rolling_angles() {
@@ -71,16 +82,20 @@ void rolling_angles() {
 }
 
 void plane_break() {
-  static int threshold = PI/8;
-  if ((abs(diff(upitch,bpitch))<threshold) && (abs(diff(uroll,broll))<threshold)) {
+  static float thresh = PI/8;
+  if ((abs(diff(upitch,bpitch))<thresh) && (abs(diff(uroll,broll))<thresh)) {
     in_plane = true;
-  } else if ((abs(diff(upitch,bpitch))>(PI-threshold)) || (abs(diff(uroll,broll))>(PI-threshold))) {
+  } else if ((abs(diff(upitch,bpitch))>(PI-thresh)) || (abs(diff(uroll,broll))>(PI-thresh))) {
     in_plane = true;
     plane_flip = 1 - plane_flip;
     bpitch = upitch;
     broll = uroll;
   } else {
+    Serial.println("plane break!");
     in_plane = false;
+    Serial.print(abs(diff(upitch,bpitch)));
+    Serial.print(" ");
+    Serial.print(abs(diff(uroll,broll)));
   }
 }
 
@@ -94,6 +109,12 @@ void reckon() {
 }
 
 void slide() {
+  //Vector_by_Matrix(G,DCM_Matrix,trueAcc);
+  //Serial.print(G[0]);
+  //Serial.print(" G ");
+  //Serial.print(G[1]);
+  //Serial.print(" G ");
+  //Serial.print(G[2]);
   static int gthresh = 100; //totally no idea
   static int vthresh = 100; //totally have no idea
   slide_x = false;
@@ -111,4 +132,6 @@ void slide() {
     }
   }
 }
+
+
 

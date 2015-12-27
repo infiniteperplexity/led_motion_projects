@@ -186,6 +186,7 @@ void Compass_Init()
   // doesn't need to do anything because Accel_Init() should have already called compass.enableDefault()
 }
 
+float G[3] = {0,0,0};
 void Callibrate() {
   for(int i=0;i<32;i++) {
     Read_Gyro();
@@ -199,6 +200,9 @@ void Callibrate() {
     AN_OFFSET[y] = AN_OFFSET[y]/32;
   } 
   AN_OFFSET[5]-=GRAVITY*SENSOR_SIGN[5];
+  G[0] = AN_OFFSET[3];
+  G[1] = AN_OFFSET[4];
+  G[2] = AN_OFFSET[5];
 }
 void Normalize(void)
 {
@@ -367,5 +371,7 @@ void AHRS_Update() {
     Drift_correction();
     Euler_angles();  
 }
+
+
 
 

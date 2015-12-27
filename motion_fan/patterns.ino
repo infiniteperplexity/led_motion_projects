@@ -8,6 +8,13 @@ void no_pattern() {
 
 
 void shake_test() {
+  //Serial.print(" ax: ");
+  //Serial.print(accel_x);
+  //Serial.print(" ay: ");
+  //Serial.print(accel_y);
+  //Serial.print(" az: ");
+  //Serial.print(accel_z);
+  //Serial.println(" ");
   static int color = 0;
   static bool shakeState = 0;
   float threshold = 1500;
@@ -239,5 +246,7 @@ void slide_test() {
     }
   }
 }
+
+
 
 
