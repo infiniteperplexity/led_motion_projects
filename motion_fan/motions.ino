@@ -109,12 +109,18 @@ void reckon() {
 }
 
 void slide() {
-  //Vector_by_Matrix(G,DCM_Matrix,trueAcc);
-  //Serial.print(G[0]);
-  //Serial.print(" G ");
-  //Serial.print(G[1]);
-  //Serial.print(" G ");
-  //Serial.print(G[2]);
+  float G2[3] = {0,0,0}; 
+  Vector_by_Matrix(G,DCM_Matrix,G2);
+  trueAcc[0] = AN[3] - G2[0];
+  trueAcc[1] = AN[4] - G2[1];
+  trueAcc[2] = AN[5] - G2[2];
+  Serial.print(trueAcc[0]);
+  Serial.print(" G ");
+  Serial.print(trueAcc[1]);
+  Serial.print(" G ");
+  Serial.print(trueAcc[2]);
+  Serial.print(" G ");
+  Serial.println(" ");
   static int gthresh = 100; //totally no idea
   static int vthresh = 100; //totally have no idea
   slide_x = false;
@@ -125,8 +131,8 @@ void slide() {
       slide_x = true;
     }
     if (vy > vthresh) {
-      slide_y = true;
     }
+      slide_y = true;
     if (vz > vthresh) {
       slide_z = true;
     }
