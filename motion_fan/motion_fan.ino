@@ -47,11 +47,11 @@ void loop() {
     timer_old = timer;
     timer=millis();
     AHRS_Update();
-    Measure_Shake();
-    Read_Switch();
-    rolling_angles();
-    plane_break();
-    reckon();
+    //Measure_Shake();
+    //Read_Switch();
+    //rolling_angles();
+    //plane_break();
+    //reckon();
     slide();
     paint();
   }
