@@ -218,18 +218,12 @@ void slide_test() {
   int r = 0;
   int g = 0;
   int b = 0;
-  Serial.print(" ax: ");
-  Serial.print(accel_x);
-  Serial.print(" ay: ");
-  Serial.print(accel_y);
-  Serial.print(" az: ");
-  Serial.print(accel_z);
   Serial.print(" vx: ");
-  Serial.print(vx);
+  Serial.print(slide_x);
   Serial.print(" vy: ");
   Serial.print(vy);
   Serial.print(" vz: ");
-  Serial.print(vz);
+  Serial.print(slide_z);
   Serial.println(" ");
   if (slide_x) {
     r = 127;

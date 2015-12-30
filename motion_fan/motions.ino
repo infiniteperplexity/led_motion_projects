@@ -91,21 +91,17 @@ void plane_break() {
     bpitch = upitch;
     broll = uroll;
   } else {
-    Serial.println("plane break!");
     in_plane = false;
-    Serial.print(abs(diff(upitch,bpitch)));
-    Serial.print(" ");
-    Serial.print(abs(diff(uroll,broll)));
   }
 }
 
 
 void reckon() {
   //these vectors are definitely not adjusted for gravity, but they do seem to be the relative directions
-  static int lambda = 0.8;
-  vx = lambda*vx + G_Dt*accel_x;
-  vy = lambda*vy + G_Dt*accel_y;
-  vz = lambda*vz + G_Dt*accel_z;
+  static int lambda = 0.9999;
+  vx = lambda*vx + G_Dt*trueAcc[0];
+  vy = lambda*vy + G_Dt*trueAcc[1];
+  vz = lambda*vz + G_Dt*trueAcc[2];
 }
 
 /*
@@ -120,25 +116,19 @@ void slide() {
   trueAcc[0] = accel_x - rG[0];
   trueAcc[1] = accel_y - rG[1];
   trueAcc[2] = accel_z - rG[2];
-  Serial.print(trueAcc[0]);
-  Serial.print(" G ");
-  Serial.print(trueAcc[1]);
-  Serial.print(" G ");
-  Serial.print(trueAcc[2]);
-  Serial.println(" ");
-  static int gthresh = 100; //totally no idea
-  static int vthresh = 100; //totally have no idea
+  static int gthresh = 1000; //totally no idea
+  static float vthresh = 3; //totally have no idea
   slide_x = false;
   slide_y = false;
   slide_z = false;
   if (gyro_x < gthresh && gyro_y < gthresh && gyro_z < gthresh) {
-    if (vx > vthresh) {
+    if (abs(vx) > vthresh) {
       slide_x = true;
     }
-    if (vy > vthresh) {
-    }
+    if (abs(vy) > vthresh) {
       slide_y = true;
-    if (vz > vthresh) {
+    }  
+    if (abs(vz) > vthresh) {
       slide_z = true;
     }
   }
