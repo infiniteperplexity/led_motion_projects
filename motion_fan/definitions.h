@@ -100,6 +100,7 @@ extern bool plane_flip;
 float shake;
 extern float last_acc[3];
 void rolling_angles();
+bool xxor(bool a, bool b);
 void plane_break();
 void slide();
 void reckon();

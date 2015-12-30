@@ -8,16 +8,9 @@ void no_pattern() {
 
 
 void shake_test() {
-  //Serial.print(" ax: ");
-  //Serial.print(accel_x);
-  //Serial.print(" ay: ");
-  //Serial.print(accel_y);
-  //Serial.print(" az: ");
-  //Serial.print(accel_z);
-  //Serial.println(" ");
   static int color = 0;
   static bool shakeState = 0;
-  float threshold = 1500;
+  float threshold = 250;
   //may need some timing conditionals here
   if (shake>=threshold) {
     if (shakeState==0) {
@@ -70,13 +63,6 @@ void shake_test() {
 }
   
 void gyro_test() {
-  Serial.print(" gx: ");
-  Serial.print(gyro_x);
-  Serial.print(" gy: ");
-  Serial.print(gyro_y);
-  Serial.print(" gz: ");
-  Serial.print(gyro_z);
-  Serial.println(" ");
   int r = 0;
   int g = 0;
   int b = 0;
@@ -114,13 +100,6 @@ void gyro_test() {
 }
 
 void orient_test() {
-  Serial.print(" yaw: ");
-  Serial.print(uyaw);
-  Serial.print(" roll: ");
-  Serial.print(uroll);
-  Serial.print(" pitch: ");
-  Serial.print(upitch);
-  Serial.println("");
   int r;
   int g;
   int b;
@@ -154,21 +133,12 @@ void plane_test() {
   int r;
   int g;
   int b;
-  static bool flipped = false;
-  Serial.print(" upitch: ");
-  Serial.print(upitch);
-  Serial.print(" bpitch: ");
-  Serial.print(bpitch);
-  Serial.print(" uroll: ");
-  Serial.print(uroll);
-  Serial.print(" broll: ");
-  Serial.print(broll);
-  Serial.println("");
+  static bool prior_plane = true;
   if (in_plane) {
-    if (flipped != plane_flip) {
+    if (prior_plane == false) {
       color = (color+1)%6;
     }
-     switch(color) {
+    switch(color) {
       case 0:
         r = 127;
         g = 0;
@@ -200,12 +170,14 @@ void plane_test() {
         b = 127;
       break;
     }
+    prior_plane = true;
     for(uint8_t i=0; i<nLEDs; i++) {
       for(int j = 0; j<nStrips; j++) {
         strips[j].setPixelColor(i,r,g,b);
       }
     }
   } else {
+    prior_plane = false;
     for(uint8_t i=0; i<nLEDs; i++) {
       for(int j = 0; j<nStrips; j++) {
         strips[j].setPixelColor(i,0,0,0);
@@ -218,13 +190,6 @@ void slide_test() {
   int r = 0;
   int g = 0;
   int b = 0;
-  Serial.print(" vx: ");
-  Serial.print(slide_x);
-  Serial.print(" vy: ");
-  Serial.print(vy);
-  Serial.print(" vz: ");
-  Serial.print(slide_z);
-  Serial.println(" ");
   if (slide_x) {
     r = 127;
   }

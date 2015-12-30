@@ -47,17 +47,17 @@ void loop() {
     timer_old = timer;
     timer=millis();
     AHRS_Update();
-    Measure_Shake();
     Read_Switch();
     rolling_angles();
     plane_break();
     reckon();
     slide();
+    Measure_Shake();
     paint();
   }
 }
 
-int mode = 5;
+int mode = 1;
 int nModes = 6;
 void Read_Switch() {
   static int readState = LOW;

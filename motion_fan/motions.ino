@@ -20,9 +20,9 @@ void Vector_by_Matrix(float a[3], float b[3][3], float v[3]) {
   }
 }
 void Measure_Shake() {
-        shake = sqrt(pow(AN[0] - lastAcc[0],2) + pow(AN[1] - lastAcc[1],2) + pow(AN[2] - lastAcc[2],2));
+        shake = sqrt(pow(trueAcc[0] - lastAcc[0],2) + pow(trueAcc[1] - lastAcc[1],2) + pow(trueAcc[2] - lastAcc[2],2));
         for(int i=0; i<3; i++) {
-                lastAcc[i] = AN[i];
+                lastAcc[i] = trueAcc[i];
         }
 }
 ////angle utilities...remember these are for absolutes, not changes
@@ -81,17 +81,28 @@ void rolling_angles() {
   }
 }
 
+bool xxor(bool a, bool b) {
+  if (a && b) {
+    return false;
+  } if (a || b) {
+    return true;
+  }
+  return false;
+}
 void plane_break() {
-  static float thresh = PI/8;
-  if ((abs(diff(upitch,bpitch))<thresh) && (abs(diff(uroll,broll))<thresh)) {
-    in_plane = true;
-  } else if ((abs(diff(upitch,bpitch))>(PI-thresh)) || (abs(diff(uroll,broll))>(PI-thresh))) {
-    in_plane = true;
-    plane_flip = 1 - plane_flip;
-    bpitch = upitch;
-    broll = uroll;
+  static float thresh = PI/16;
+  static float zthresh = 2000;
+  //if (xxor(abs(diff(upitch,bpitch)>thresh),abs(diff(uroll,broll))>thresh)==true) {
+  if ((abs(diff(upitch,bpitch))>thresh) || (abs(diff(uroll,broll))>thresh)) {
+    if (gyro_z < zthresh) {
+      Serial.println("plane break");
+      in_plane = false;
+    } else {
+      Serial.println("spinning");
+      in_plane = true;
+    }
   } else {
-    in_plane = false;
+    in_plane = true;
   }
 }
 
