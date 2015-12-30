@@ -13,7 +13,8 @@ void Vector_by_Matrix(float a[3], float b[3][3], float v[3]) {
   float op[3];
   for(int i=0; i<3; i++) {
     for(int j=0; j<3; j++) {
-      op[j]=a[j]*b[i][j];
+      op[j]=a[j]*b[j][i];
+      //op[j]=a[j]*b[i][j];
     }
     v[i]=op[0]+op[1]+op[2];
   }
@@ -116,35 +117,14 @@ flat: 0, 0, 0 ; flipped: 0, 0, 0
 void slide() {
   float rG[3];
   Vector_by_Matrix(G,DCM_Matrix,rG);
-  trueAcc[0] = accel_x + 2*GRAVITY - 2*rG[0];
-  trueAcc[1] = accel_y + 2*GRAVITY - 2*rG[1];
+  trueAcc[0] = accel_x - rG[0];
+  trueAcc[1] = accel_y - rG[1];
   trueAcc[2] = accel_z - rG[2];
-
-  // the acceleration values look right and I'm almost sure the matrix math is right.
-  // it works correctly for the Z axis.
-  //rG[0] = G[0]*DCM_Matrix[0][0] + G[1]*DCM_Matrix[0][1] + G[2]*DCM_Matrix[0][2];
-  //trueAcc[1] = G[0]*DCM_Matrix[1][0] + G[1]*DCM_Matrix[1][1] + G[2]*DCM_Matrix[1][2];
-  //trueAcc[2] = G[0]*DCM_Matrix[2][0] + G[1]*DCM_Matrix[2][1] + G[2]*DCM_Matrix[2][2];
-  //trueAcc[1] = accel_y - trueAcc[1];
-  //trueAcc[2] = accel_z - trueAcc[2];
-  //Serial.print(trueAcc[0]);
-  //Serial.print(AN_OFFSET[3]);
-  Serial.print(accel_x);
-  // actually seems to work now! Serial.print(accel_z - trueAcc[2]);
+  Serial.print(trueAcc[0]);
   Serial.print(" G ");
-  //Serial.print(GRAVITY);
-  //Serial.print(AN_OFFSET[4]);
-  Serial.print(rG[0]);
+  Serial.print(trueAcc[1]);
   Serial.print(" G ");
-  //Serial.print(trueAcc[2]);
-  //Serial.print(AN_OFFSET[5]);
-  //Serial.print(trueAcc[1]);
-  //Serial.print(" G ");
-  //Serial.print(trueAcc[2]);
-  //Serial.print(" G ");
-  Serial.print(" G ");
-  Serial.print(rG[1]);
-  //Serial.print(sqrt(trueAcc[0]*trueAcc[0] + trueAcc[1]*trueAcc[1] + trueAcc[2]*trueAcc[2]));
+  Serial.print(trueAcc[2]);
   Serial.println(" ");
   static int gthresh = 100; //totally no idea
   static int vthresh = 100; //totally have no idea
