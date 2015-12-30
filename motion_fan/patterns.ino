@@ -6,6 +6,85 @@ void no_pattern() {
   }
 }
 
+void multi_pattern() {
+  //this should check...
+    // gyro_z to sparkle
+    // slide_x and slide_y to strobe
+    // plane_break to change colors
+  int r = 0;
+  int g = 0;
+  int b = 0;
+  static int color = 0;
+  static bool prior_plane = true;
+  static int strobe_state = 1;
+  static int sparkle = -1;
+  if (in_plane) {
+    if (prior_plane == false) {
+      Serial.println("regained plane");
+      color = (color+1)%6;
+    }
+    prior_plane = true;
+  } else {
+    Serial.println("broke plane");
+    prior_plane = false;
+  }
+  switch(color) {
+    case 0:
+      r = 127;
+      g = 0;
+      b = 0;
+    break;
+    case 1:
+      r = 127;
+      g = 127;
+      b = 0;
+    break;
+    case 2:
+      r = 0;
+      g = 127;
+      b = 0;
+    break;
+    case 3:
+      r = 0;
+      g = 127;
+      b = 127;
+    break;
+    case 4:
+      r = 0;
+      g = 0;
+      b = 127;
+    break;
+    default:
+      r = 127;
+      g = 0;
+      b = 127;
+    break;
+  }
+  if (slide_x || slide_y) {
+    Serial.println("sliding");
+    strobe_state = 1 - strobe_state;
+  } else {
+    strobe_state = 1;
+  }
+  if (abs(gyro_z)>=2000) {
+    Serial.println("sparkling");
+    sparkle = (sparkle+1)%nLEDs;
+  } else {
+    sparkle = -1;
+  }
+  for(uint8_t i=0; i<nLEDs; i++) {
+    for(int j = 0; j<nStrips; j++) {
+      if (i==sparkle) {
+        Serial.println("SPARKLYYY!");
+        strips[j].setPixelColor(i,127,127,127);
+      } else if (sparkle>=0) { 
+        strips[j].setPixelColor(i,strobe_state*r,strobe_state*g,strobe_state*b);
+      } else {
+        strips[j].setPixelColor(i,0,0,0);
+      }
+    }
+  }  
+}
 
 void shake_test() {
   static int color = 0;
@@ -190,6 +269,13 @@ void slide_test() {
   int r = 0;
   int g = 0;
   int b = 0;
+  Serial.print(" x: ");
+  Serial.print(slide_x);
+  Serial.print(" y: ");
+  Serial.print(slide_y);
+  Serial.print(" z: ");
+  Serial.print(slide_z);
+  Serial.println("");
   if (slide_x) {
     r = 127;
   }

@@ -90,11 +90,10 @@ bool xxor(bool a, bool b) {
   return false;
 }
 void plane_break() {
-  static float thresh = PI/16;
-  static float zthresh = 2000;
-  //if (xxor(abs(diff(upitch,bpitch)>thresh),abs(diff(uroll,broll))>thresh)==true) {
+  static float thresh = PI/12;
+  static float zthresh = 1000;
   if ((abs(diff(upitch,bpitch))>thresh) || (abs(diff(uroll,broll))>thresh)) {
-    if (gyro_z < zthresh) {
+    if ((abs(gyro_z) < zthresh) && (slide_x==false) && (slide_y==false) && (slide_z==false)) {
       Serial.println("plane break");
       in_plane = false;
     } else {

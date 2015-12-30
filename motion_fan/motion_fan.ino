@@ -49,16 +49,16 @@ void loop() {
     AHRS_Update();
     Read_Switch();
     rolling_angles();
-    plane_break();
     reckon();
     slide();
+    plane_break();
     Measure_Shake();
     paint();
   }
 }
 
 int mode = 1;
-int nModes = 6;
+int nModes = 7;
 void Read_Switch() {
   static int readState = LOW;
   int reading = digitalRead(switchPin);
@@ -72,18 +72,20 @@ void paint() {
   //eventually this should use function pointers
   switch(mode) {
     case 1:
+      multi_pattern();
+    case 2:
       shake_test();
     break;
-    case 2:
+    case 3:
       gyro_test();
       break;
-    case 3:
+    case 4:
       orient_test();
     break;
-    case 4:
+    case 5:
       plane_test();
       break;
-    case 5:
+    case 6:
       slide_test();
     break;
     default: // typically case 0
