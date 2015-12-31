@@ -20,12 +20,10 @@ void multi_pattern() {
   static int sparkle = -1;
   if (in_plane) {
     if (prior_plane == false) {
-      Serial.println("regained plane");
       color = (color+1)%6;
     }
     prior_plane = true;
   } else {
-    Serial.println("broke plane");
     prior_plane = false;
   }
   switch(color) {
@@ -60,14 +58,12 @@ void multi_pattern() {
       b = 127;
     break;
   }
-  if (slide_x || slide_y) {
-    Serial.println("sliding");
-    strobe_state = 1 - strobe_state;
+  if ((slide_x==true) || (slide_y==true)) {
+    strobe_state = (strobe_state+1)%2;
   } else {
     strobe_state = 1;
   }
   if (abs(gyro_z)>=2000) {
-    Serial.println("sparkling");
     sparkle = (sparkle+1)%nLEDs;
   } else {
     sparkle = -1;
@@ -75,9 +71,8 @@ void multi_pattern() {
   for(uint8_t i=0; i<nLEDs; i++) {
     for(int j = 0; j<nStrips; j++) {
       if (i==sparkle) {
-        Serial.println("SPARKLYYY!");
         strips[j].setPixelColor(i,127,127,127);
-      } else if (sparkle>=0) { 
+      } else if (sparkle==-1) { 
         strips[j].setPixelColor(i,strobe_state*r,strobe_state*g,strobe_state*b);
       } else {
         strips[j].setPixelColor(i,0,0,0);

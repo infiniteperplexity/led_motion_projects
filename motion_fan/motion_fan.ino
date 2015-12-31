@@ -73,6 +73,7 @@ void paint() {
   switch(mode) {
     case 1:
       multi_pattern();
+      break;
     case 2:
       shake_test();
     break;
