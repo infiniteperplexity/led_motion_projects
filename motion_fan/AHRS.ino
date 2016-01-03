@@ -204,10 +204,10 @@ void Callibrate() {
   G[0] = -AN_OFFSET[3];
   G[1] = -AN_OFFSET[4];
   G[2] = -AN_OFFSET[5];
-  //AN_OFFSET[3] = 0;
-  //AN_OFFSET[4] = 0;
-  //AN_OFFSET[5] = 0;
-  AN_OFFSET[5]-=GRAVITY*SENSOR_SIGN[5];
+  AN_OFFSET[3] = 10;
+  AN_OFFSET[4] = 10;
+  AN_OFFSET[5] = 10;
+  //AN_OFFSET[5]-=GRAVITY*SENSOR_SIGN[5];
 }
 void Normalize(void)
 {
@@ -277,6 +277,7 @@ void Drift_correction(void)
   // Weight for accelerometer info (<0.5G = 0.0, 1G = 1.0 , >1.5G = 0.0)
   Accel_weight = constrain(1 - 2*abs(1 - Accel_magnitude),0,1);  //  
 
+  //this is a deeply suspicious calculation
   Vector_Cross_Product(&errorRollPitch[0],&Accel_Vector[0],&DCM_Matrix[2][0]); //adjust the ground of reference
   Vector_Scale(&Omega_P[0],&errorRollPitch[0],Kp_ROLLPITCH*Accel_weight);
   

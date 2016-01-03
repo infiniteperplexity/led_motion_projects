@@ -7,14 +7,6 @@ void no_pattern() {
 }
 
 void multi_pattern() {
-  Serial.print(AN_OFFSET[3]);
-  Serial.print(" G ");
-  Serial.print(AN_OFFSET[4]);
-  Serial.print(" G ");
-  Serial.print(AN_OFFSET[5]);
-  Serial.print(" G ");
-  Serial.print(AN_OFFSET[5] + GRAVITY*SENSOR_SIGN[5]);
-  Serial.println("");
   //this should check...
     // gyro_z to sparkle
     // slide_x and slide_y to strobe
