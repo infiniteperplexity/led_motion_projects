@@ -204,10 +204,10 @@ void Callibrate() {
   G[0] = -AN_OFFSET[3];
   G[1] = -AN_OFFSET[4];
   G[2] = -AN_OFFSET[5];
-  AN_OFFSET[3] = 0;
-  AN_OFFSET[4] = 0;
-  AN_OFFSET[5] = 0;
-  //AN_OFFSET[5]-=GRAVITY*SENSOR_SIGN[5];
+  //AN_OFFSET[3] = 0;
+  //AN_OFFSET[4] = 0;
+  //AN_OFFSET[5] = 0;
+  AN_OFFSET[5]-=GRAVITY*SENSOR_SIGN[5];
 }
 void Normalize(void)
 {

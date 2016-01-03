@@ -94,10 +94,8 @@ void plane_break() {
   static float zthresh = 1000;
   if ((abs(diff(upitch,bpitch))>thresh) || (abs(diff(uroll,broll))>thresh)) {
     if ((abs(gyro_z) < zthresh) && (slide_x==false) && (slide_y==false) && (slide_z==false)) {
-      Serial.println("plane break");
       in_plane = false;
     } else {
-      Serial.println("spinning");
       in_plane = true;
     }
   } else {
