@@ -1,22 +1,47 @@
+    #include <Arduino.h>
     #include <Wire.h>
     #include <Adafruit_Sensor.h>
     #include <Adafruit_BNO055.h>
     #include <utility/imumaths.h>
+    #include <SPI.h>
+    #include "LPD8806.h"
+    long timer=0;   //general purpuse timer
+    long timer_old;
+    // Number of RGB LEDs in strand:
+    int nLEDs = 4;
+    int nStrips = 5;
+    // Chose 2 pins for output; can be any valid output pins:
+    int imuPower = 15;
+    int imuGround = 17;
+    int clockPin = 6;
+    int dataPin1 = 7;
+    int dataPin2 = 8;
+    int dataPin3 = 9;
+    int dataPin4 = 10;
+    int dataPin5 = 11;
+    int switchPin = 12;
+    int ledPin = 13;
+    LPD8806 strip1 = LPD8806(nLEDs, dataPin1, clockPin);
+    LPD8806 strip2 = LPD8806(nLEDs, dataPin2, clockPin);
+    LPD8806 strip3 = LPD8806(nLEDs, dataPin3, clockPin);
+    LPD8806 strip4 = LPD8806(nLEDs, dataPin4, clockPin);
+    LPD8806 strip5 = LPD8806(nLEDs, dataPin5, clockPin);
+    LPD8806 strips[5] = {strip1, strip2, strip3, strip4, strip5};
 
     Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
     void setup(void)
     {
-      pinMode(15, OUTPUT);
-      pinMode(17, OUTPUT);
+      pinMode(imuPower, OUTPUT);
+      pinMode(imuGround, OUTPUT);
       //pinMode(switchPin, INPUT);
       //pinMode(ledPin, OUTPUT);
-      digitalWrite(15, HIGH);
-      digitalWrite(17, LOW);
+      digitalWrite(imuPower, HIGH);
+      digitalWrite(imuGround, LOW);
       delay(10);
       Serial.begin(9600);
       Serial.println("Orientation Sensor Test"); Serial.println("");
-
+    
       /* Initialise the sensor */
       if(!bno.begin())
       {
@@ -28,6 +53,11 @@
       delay(1000);
 
       bno.setExtCrystalUse(true);
+      delay(2500);
+      for(int i=0; i<nStrips; i++) {
+        strips[i].begin();
+      }
+      delay(2500);
     }
 
     void loop(void)
@@ -35,7 +65,7 @@
       /* Get a new sensor event */
       sensors_event_t event;
       bno.getEvent(&event);
-
+/*
       // Scale all three Euler angles to 0-360
       int yaw = event.orientation.x;
       int pitch = event.orientation.z+180;
@@ -60,32 +90,33 @@
       Serial.print("\tV Roll: ");
       Serial.print(vroll);
       Serial.println("");
+  */
+      paint();
 
 
+      //float vx = (read8(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR ));
+      //float vy = (read8(BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR ));
+      //float vz = (read8(BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR ));
 
-      float vx = (read8(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR ));
-      float vy = (read8(BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR ));
-      float vz = (read8(BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR ));
-
-      Serial.print("VX: ");
-      Serial.print(vx);
-      Serial.print("\tVY: ");
-      Serial.print(vy);
-      Serial.print("\tVZ: ");
-      Serial.print(vz);
-      Serial.println("");
+      //Serial.print("VX: ");
+      //Serial.print(vx);
+      //Serial.print("\tVY: ");
+      //Serial.print(vy);
+      //Serial.print("\tVZ: ");
+      //Serial.print(vz);
+      //Serial.println("");
 
       delay(100);
     }
-
-/*    BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR                     = 0X28,
-    BNO055_LINEAR_ACCEL_DATA_X_MSB_ADDR                     = 0X29,
-    BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR                     = 0X2A,
-    BNO055_LINEAR_ACCEL_DATA_Y_MSB_ADDR                     = 0X2B,
-    BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR                     = 0X2C,
-    BNO055_LINEAR_ACCEL_DATA_Z_MSB_ADDR                     = 0X2D,
-
-VECTOR_LINEARACCEL   = BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR,
-
-offsets_type.gyro_offset_x = (read8(GYRO_OFFSET_X_MSB_ADDR) << 8) | (read8(GYRO_OFFSET_X_LSB_ADDR));
-    */
+    
+    void paint() {
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(uint8_t j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,100,0,0);
+          Serial.println(j);
+        }
+      }
+      for(uint8_t j = 0; j<nStrips; j++) {
+        strips[j].show();
+      }
+    }
