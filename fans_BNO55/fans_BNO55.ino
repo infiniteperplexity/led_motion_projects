@@ -53,11 +53,9 @@
       delay(1000);
 
       bno.setExtCrystalUse(true);
-      delay(2500);
       for(int i=0; i<nStrips; i++) {
         strips[i].begin();
       }
-      delay(2500);
     }
 
     void loop(void)
@@ -65,7 +63,7 @@
       /* Get a new sensor event */
       sensors_event_t event;
       bno.getEvent(&event);
-/*
+
       // Scale all three Euler angles to 0-360
       int yaw = event.orientation.x;
       int pitch = event.orientation.z+180;
@@ -90,7 +88,7 @@
       Serial.print("\tV Roll: ");
       Serial.print(vroll);
       Serial.println("");
-  */
+  
       paint();
 
 
