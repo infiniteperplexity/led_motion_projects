@@ -28,20 +28,25 @@
     LPD8806 strip5 = LPD8806(nLEDs, dataPin5, clockPin);
     LPD8806 strips[5] = {strip1, strip2, strip3, strip4, strip5};
 
+    int yaw;
+    int pitch;
+    int roll;
+    float vyaw;
+    float vpitch;
+    float vroll;
+
+    
     Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
-    void setup(void)
-    {
+    void setup(void) {
       pinMode(imuPower, OUTPUT);
       pinMode(imuGround, OUTPUT);
-      //pinMode(switchPin, INPUT);
-      //pinMode(ledPin, OUTPUT);
+      pinMode(switchPin, INPUT);
+      pinMode(ledPin, OUTPUT);
       digitalWrite(imuPower, HIGH);
       digitalWrite(imuGround, LOW);
       delay(10);
       Serial.begin(9600);
-      Serial.println("Orientation Sensor Test"); Serial.println("");
-    
       /* Initialise the sensor */
       if(!bno.begin())
       {
@@ -49,26 +54,42 @@
         Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
         while(1);
       }
-
-      delay(1000);
-
+      delay(1000); // is this delay necessary?
       bno.setExtCrystalUse(true);
       for(int i=0; i<nStrips; i++) {
         strips[i].begin();
       }
+      timer=millis();
+      delay(20);
     }
 
-    void loop(void)
-    {
+    void loop(void) {
+      if((millis()-timer)>=20) {  // Main loop runs at 50Hz
+        timer_old = timer;
+        timer=millis();
+ 
+        sensors();
+        readings();
+        paint();
+      }
+    }
+
+    void sensors() {
       /* Get a new sensor event */
       sensors_event_t event;
       bno.getEvent(&event);
-
       // Scale all three Euler angles to 0-360
-      int yaw = event.orientation.x;
-      int pitch = event.orientation.z+180;
-      int roll = (event.orientation.x>180) ? (event.orientation.y+90) : (270-event.orientation.y);
-
+      yaw = event.orientation.x;
+      pitch = event.orientation.z+180;
+      roll = (event.orientation.x>180) ? (event.orientation.y+90) : (270-event.orientation.y);
+      // gather gyroscope readings
+      vyaw = event.gyro.z;
+      vpitch = event.gyro.y;
+      vroll = event.gyro.x;
+      // gather linear acceleration readings
+      // gather compass readings
+    }
+    void readings() {
       Serial.print("Yaw: ");
       Serial.print(yaw);
       Serial.print("\tPitch: ");
@@ -77,9 +98,7 @@
       Serial.print(roll);
       Serial.println("");
 
-      float vyaw = event.gyro.z;
-      float vpitch = event.gyro.y;
-      float vroll = event.gyro.x;
+
 
       Serial.print("V Yaw: ");
       Serial.print(vyaw);
@@ -87,34 +106,65 @@
       Serial.print(vpitch);
       Serial.print("\tV Roll: ");
       Serial.print(vroll);
-      Serial.println("");
-  
-      paint();
-
-
-      //float vx = (read8(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR ));
-      //float vy = (read8(BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR ));
-      //float vz = (read8(BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR) << 8) | (read8(BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR ));
-
-      //Serial.print("VX: ");
-      //Serial.print(vx);
-      //Serial.print("\tVY: ");
-      //Serial.print(vy);
-      //Serial.print("\tVZ: ");
-      //Serial.print(vz);
-      //Serial.println("");
-
-      delay(100);
+      Serial.println(""); 
     }
-    
     void paint() {
+      //eventually this should use function pointers
+      switch(mode) {
+        case 1:
+          gyro_test();
+        break;
+        default: // typically case 0
+          no_pattern();
+        break;
+      }
+      strip1.show();
+      strip2.show();
+      strip3.show();
+      strip4.show();
+      strip5.show();  
+    }
+
+    void no_pattern() {
       for(uint8_t i=0; i<nLEDs; i++) {
-        for(uint8_t j = 0; j<nStrips; j++) {
-          strips[j].setPixelColor(i,100,0,0);
-          Serial.println(j);
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,0,0,0);
         }
       }
-      for(uint8_t j = 0; j<nStrips; j++) {
-        strips[j].show();
+    }
+    
+    void gyro_test() {
+      int r = 0;
+      int g = 0;
+      int b = 0;
+      static int p = 0;
+      p = (p+1)%2;
+      int rollThresh = 2000;
+      int pitchThresh = 2000;
+      int yawThresh = 2000;
+      if (vroll>= rollThresh) {
+        r = 127;
+      } else {
+        r = 1;
+      }
+      if (vpitch >= rollThresh) {
+        g = 127;
+      } else {
+        g = 1;
+      }
+      if (vyaw >= rollThresh) {
+        b = 127;   
+      } else {
+        b = 1;
+      }
+      if ((p%2)==0) {
+        r = 0;
+        g = 0;
+        b = 0;
+      }
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,r,g,b);
+        }
       }
     }
