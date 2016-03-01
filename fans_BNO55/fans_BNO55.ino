@@ -108,6 +108,7 @@
       Serial.print(vroll);
       Serial.println(""); 
     }
+    int mode = 0;
     void paint() {
       //eventually this should use function pointers
       switch(mode) {
