@@ -86,7 +86,17 @@
       vyaw = event.gyro.z;
       vpitch = event.gyro.y;
       vroll = event.gyro.x;
+      imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+      float gx = gyro.x();
+      float gy = gyro.y();
+      float gz = gyro.z();
       // gather linear acceleration readings
+      imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+      float ax = linear.x();
+      float ay = linear.y();
+      float az = linear.z();
+      
+      
       // gather compass readings
     }
     void readings() {
@@ -106,6 +116,14 @@
       Serial.print(vpitch);
       Serial.print("\tV Roll: ");
       Serial.print(vroll);
+      Serial.println(""); 
+
+      Serial.print("aX: ");
+      Serial.print(ax);
+      Serial.print("\taY: ");
+      Serial.print(ay);
+      Serial.print("\taZ: ");
+      Serial.print(az);
       Serial.println(""); 
     }
     int mode = 0;
