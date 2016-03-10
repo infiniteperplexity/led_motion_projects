@@ -74,6 +74,17 @@
       }
     }
 
+float gx;
+float gy;
+float gz;
+
+float az;
+ float ax;
+ float ay;
+ float vx = 0;
+ float vy = 0;
+ float vz = 0;
+ float tick = 0.02;
     void sensors() {
       /* Get a new sensor event */
       sensors_event_t event;
@@ -87,51 +98,65 @@
       vpitch = event.gyro.y;
       vroll = event.gyro.x;
       imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-      float gx = gyro.x();
-      float gy = gyro.y();
-      float gz = gyro.z();
+      //gx works and it's the foldy plane...7 is reasonably high
+      gx = gyro.x();
+      //gy works and it's the twisty plane...same scale
+      gy = gyro.y();
+      //gz works and it's the twirly plane
+      gz = gyro.z();
       // gather linear acceleration readings
       imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-      float ax = linear.x();
-      float ay = linear.y();
-      float az = linear.z();
-      
-      
-      // gather compass readings
-    }
+      // linear X works and is toward the USB port...12 is somewhat high
+      ax = linear.x();
+      // linear Y works and is toward the fan tines or handle
+      ay = linear.y();
+      // linear Z works and is the foldy plane
+      az = linear.z();
+
+      //estimate the velocity;
+      static float lambda = 0.9;
+      vx = lambda*vx + tick*ax;
+      vy = lambda*vy + tick*ay;
+      vz = lambda*vz + tick*az;
+  }
     void readings() {
-      Serial.print("Yaw: ");
-      Serial.print(yaw);
-      Serial.print("\tPitch: ");
-      Serial.print(pitch);
-      Serial.print("\tRoll: ");
-      Serial.print(roll);
-      Serial.println("");
+//      Serial.print("Yaw: ");
+//      Serial.print(yaw);
+//      Serial.print("\tPitch: ");
+//      Serial.print(pitch);
+//      Serial.print("\tRoll: ");
+//      Serial.print(roll);
+//      Serial.println("");
 
 
 
-      Serial.print("V Yaw: ");
-      Serial.print(vyaw);
-      Serial.print("\tV Pitch: ");
-      Serial.print(vpitch);
-      Serial.print("\tV Roll: ");
-      Serial.print(vroll);
-      Serial.println(""); 
+//      Serial.print("V Yaw: ");
+//      Serial.print(vyaw);
+//      Serial.print("\tV Pitch: ");
+//      Serial.print(vpitch);
+//      Serial.print("\tV Roll: ");
+//      Serial.print(vroll);
+//      Serial.println(""); 
 
-      Serial.print("aX: ");
-      Serial.print(ax);
-      Serial.print("\taY: ");
-      Serial.print(ay);
-      Serial.print("\taZ: ");
-      Serial.print(az);
-      Serial.println(""); 
+      //Serial.print("aX: ");
+      //Serial.print(ax);
+      //Serial.print("\taY: ");
+      //Serial.print(ay);
+      //Serial.print("\taZ: ");
+      //Serial.print(az);
+      //Serial.println(""); 
+      
+      //Serial.println(vx);
     }
-    int mode = 0;
+    int mode = 2;
     void paint() {
       //eventually this should use function pointers
       switch(mode) {
         case 1:
           gyro_test();
+        break;
+        case 2:
+          slide_test();
         break;
         default: // typically case 0
           no_pattern();
@@ -151,6 +176,26 @@
         }
       }
     }
+
+    void slide_test() {
+      static int p = 0;
+      p = (p+1)%2;
+      int r = 0;
+      int g = 0;
+      int b = 0;
+      float vvx = constrain(vx,-2,2);
+      float vvy = constrain(vy,-2,2);
+      float vvz = constrain(vz,-2,2);
+      Serial.println(vvx);
+      r = p*map(abs(vvx),0,2,0,127);
+      g = p*map(abs(vvy),0,2,0,127);
+      b = p*map(abs(vvz),0,2,0,127);
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,r,g,b);
+        }
+      }
+    }
     
     void gyro_test() {
       int r = 0;
@@ -158,28 +203,16 @@
       int b = 0;
       static int p = 0;
       p = (p+1)%2;
-      int rollThresh = 2000;
-      int pitchThresh = 2000;
-      int yawThresh = 2000;
-      if (vroll>= rollThresh) {
-        r = 127;
-      } else {
-        r = 1;
-      }
-      if (vpitch >= rollThresh) {
-        g = 127;
-      } else {
-        g = 1;
-      }
-      if (vyaw >= rollThresh) {
-        b = 127;   
-      } else {
-        b = 1;
-      }
-      if ((p%2)==0) {
-        r = 0;
-        g = 0;
-        b = 0;
+      Serial.println(gy);
+      float xt = 1;
+      float yt = 0.3;
+      float zt = 1;
+      if (abs(gy)>= yt) {
+        r = p*127;
+      } else if (abs(gz) >= zt) {
+        g = p*127;
+      } else if (abs(gx) >= xt) {
+        b = p*127;   
       }
       for(uint8_t i=0; i<nLEDs; i++) {
         for(int j = 0; j<nStrips; j++) {
