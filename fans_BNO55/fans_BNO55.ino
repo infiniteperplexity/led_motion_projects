@@ -148,7 +148,7 @@ float az;
       
       //Serial.println(vx);
     }
-    int mode = 2;
+    int mode = 1;
     void paint() {
       //eventually this should use function pointers
       switch(mode) {
@@ -203,15 +203,18 @@ float az;
       int b = 0;
       static int p = 0;
       p = (p+1)%2;
-      Serial.println(gy);
-      float xt = 1;
-      float yt = 0.3;
-      float zt = 1;
+      float xt = 5;
+      float yt = 5;
+      float zt = 5;
       if (abs(gy)>= yt) {
         r = p*127;
-      } else if (abs(gz) >= zt) {
+      }
+      //else 
+      if (abs(gz) >= zt) {
         g = p*127;
-      } else if (abs(gx) >= xt) {
+      }
+      //else
+      if (abs(gx) >= xt) {
         b = p*127;   
       }
       for(uint8_t i=0; i<nLEDs; i++) {
