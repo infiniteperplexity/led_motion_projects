@@ -85,6 +85,16 @@ float az;
  float vy = 0;
  float vz = 0;
  float tick = 0.02;
+ 
+bool inPlane = false;
+float pThresh = 2;
+float sThresh = 5;
+int outMax = 5;
+int inMin = 50;
+int nIn = 0;
+int nOut = 0;
+bool toggled = false;
+
     void sensors() {
       /* Get a new sensor event */
       sensors_event_t event;
@@ -118,6 +128,25 @@ float az;
       vx = lambda*vx + tick*ax;
       vy = lambda*vy + tick*ay;
       vz = lambda*vz + tick*az;
+      
+      toggled = false;
+      Serial.println("whattt!");
+      Serial.println(ax);
+      if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
+        nOut+=1;
+        if (nOut>=outMax) {
+          nIn = 0;
+          inPlane = false;
+        }
+      } else {
+        
+        nIn+=1;
+        nOut=0;
+        if (nIn >= inMin && inPlane==false) { 
+          inPlane = true;
+          toggled = true;
+        }
+      }
   }
     void readings() {
 //      Serial.print("Yaw: ");
@@ -128,27 +157,8 @@ float az;
 //      Serial.print(roll);
 //      Serial.println("");
 
-
-
-//      Serial.print("V Yaw: ");
-//      Serial.print(vyaw);
-//      Serial.print("\tV Pitch: ");
-//      Serial.print(vpitch);
-//      Serial.print("\tV Roll: ");
-//      Serial.print(vroll);
-//      Serial.println(""); 
-
-      //Serial.print("aX: ");
-      //Serial.print(ax);
-      //Serial.print("\taY: ");
-      //Serial.print(ay);
-      //Serial.print("\taZ: ");
-      //Serial.print(az);
-      //Serial.println(""); 
-      
-      //Serial.println(vx);
     }
-    int mode = 1;
+    int mode = 3 ;
     void paint() {
       //eventually this should use function pointers
       switch(mode) {
@@ -157,6 +167,9 @@ float az;
         break;
         case 2:
           slide_test();
+        break;
+        case 3:
+          plane_test();
         break;
         default: // typically case 0
           no_pattern();
@@ -186,7 +199,7 @@ float az;
       float vvx = constrain(vx,-2,2);
       float vvy = constrain(vy,-2,2);
       float vvz = constrain(vz,-2,2);
-      Serial.println(vvx);
+      //Serial.println(vvx);
       r = p*map(abs(vvx),0,2,0,127);
       g = p*map(abs(vvy),0,2,0,127);
       b = p*map(abs(vvz),0,2,0,127);
@@ -216,6 +229,54 @@ float az;
       //else
       if (abs(gx) >= xt) {
         b = p*127;   
+      }
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,r,g,b);
+        }
+      }
+    }
+    
+    void plane_test() {
+      int r;
+      int g;
+      int b;
+      //Serial.println(nIn);
+      static int color = 0;
+      switch(color) {
+        case 0:
+          r = 127;
+          g = 0;
+          b = 0;
+        break;
+        case 1:
+          r = 127;
+          g = 127;
+          b = 0;
+        break;
+        case 2:
+          r = 0;
+          g = 127;
+          b = 0;
+        break;
+        case 3:
+          r = 0;
+          g = 127;
+          b = 127;
+        break;
+        case 4:
+          r = 0;
+          g = 0;
+          b = 127;
+        break;
+        default:
+          r = 127;
+          g = 0;
+          b = 127;
+        break;
+      }
+      if (inPlane==true && toggled==true) {
+        color = (color+1)%6;
       }
       for(uint8_t i=0; i<nLEDs; i++) {
         for(int j = 0; j<nStrips; j++) {
