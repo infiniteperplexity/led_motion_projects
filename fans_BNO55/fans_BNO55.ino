@@ -90,7 +90,7 @@ bool inPlane = false;
 float pThresh = 2;
 float sThresh = 5;
 int outMax = 5;
-int inMin = 50;
+int inMin = 10;
 int nIn = 0;
 int nOut = 0;
 bool toggled = false;
@@ -130,8 +130,7 @@ bool toggled = false;
       vz = lambda*vz + tick*az;
       
       toggled = false;
-      Serial.println("whattt!");
-      Serial.println(ax);
+      Serial.println(nIn);
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
         nOut+=1;
         if (nOut>=outMax) {
@@ -139,7 +138,6 @@ bool toggled = false;
           inPlane = false;
         }
       } else {
-        
         nIn+=1;
         nOut=0;
         if (nIn >= inMin && inPlane==false) { 
@@ -158,7 +156,7 @@ bool toggled = false;
 //      Serial.println("");
 
     }
-    int mode = 3 ;
+    int mode = 4;
     void paint() {
       //eventually this should use function pointers
       switch(mode) {
@@ -170,6 +168,9 @@ bool toggled = false;
         break;
         case 3:
           plane_test();
+        break;
+        case 4:
+          multi_pattern();
         break;
         default: // typically case 0
           no_pattern();
@@ -284,3 +285,71 @@ bool toggled = false;
         }
       }
     }
+    
+    
+   void multi_pattern() {
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    static int color = 0;
+    static int strobe_state = 1;
+    static int sparkle = -1;
+    if (inPlane==true && toggled==true) {
+      color = (color+1)%6;
+    }
+    switch(color) {
+      case 0:
+        r = 127;
+        g = 0;
+        b = 0;
+      break;
+      case 1:
+        r = 127;
+        g = 127;
+        b = 0;
+      break;
+      case 2:
+        r = 0;
+        g = 127;
+        b = 0;
+      break;
+      case 3:
+        r = 0;
+        g = 127;
+        b = 127;
+      break;
+      case 4:
+        r = 0;
+        g = 0;
+        b = 127;
+      break;
+      default:
+        r = 127;
+        g = 0;
+        b = 127;
+      break;
+    }
+    float slidet = 2;
+    if (abs(ax)>=slidet || abs(ay)>=slidet) {
+      strobe_state = (strobe_state+1)%2;
+    } else {
+      strobe_state = 1;
+    }
+    float gt = 5;
+    if (abs(gz)>=gt) {
+      sparkle = (sparkle+1)%nLEDs;
+    } else {
+      sparkle = -1;
+    }
+    for(uint8_t i=0; i<nLEDs; i++) {
+      for(int j = 0; j<nStrips; j++) {
+        if (i==sparkle) {
+          strips[j].setPixelColor(i,127,127,127);
+        } else if (sparkle==-1) { 
+          strips[j].setPixelColor(i,strobe_state*r,strobe_state*g,strobe_state*b);
+        } else {
+          strips[j].setPixelColor(i,0,0,0);
+        }
+      }
+    }  
+  }
