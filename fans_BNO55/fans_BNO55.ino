@@ -329,7 +329,7 @@ bool toggled = false;
         b = 127;
       break;
     }
-    float slidet = 2;
+    float slidet = 4;
     if (abs(ax)>=slidet || abs(ay)>=slidet) {
       strobe_state = (strobe_state+1)%2;
     } else {
