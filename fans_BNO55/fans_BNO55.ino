@@ -78,13 +78,25 @@ float gx;
 float gy;
 float gz;
 
-float az;
- float ax;
- float ay;
+float az = 0;
+ float ax = 0;
+ float ay = 0;
+ float ax0;
+ float ay0;
+ float az0;
+ float jx;
+ float jy;
+ float jz;
  float vx = 0;
  float vy = 0;
  float vz = 0;
  float tick = 0.02;
+ 
+ float vy100 = 0;
+ float vy99 = 0;
+ float vy95 = 0;
+ float vy9 = 0;
+ float vy8 = 0;
  
 bool inPlane = false;
 float pThresh = 2;
@@ -117,20 +129,31 @@ bool toggled = false;
       // gather linear acceleration readings
       imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
       // linear X works and is toward the USB port...12 is somewhat high
+      ax0 = ax;
       ax = linear.x();
+      jx = (ax-ax0);
+      ay0 = ay;
       // linear Y works and is toward the fan tines or handle
       ay = linear.y();
+      jy = (ay-ay0);
+      az0 = az;
       // linear Z works and is the foldy plane
       az = linear.z();
+      jz = (az-az0);
 
       //estimate the velocity;
-      static float lambda = 0.9;
-      vx = lambda*vx + tick*ax;
-      vy = lambda*vy + tick*ay;
-      vz = lambda*vz + tick*az;
+      static float shave = 0.95;
+      vx = shave*vx + tick*(ax+ax0)/2;
+      vy = shave*vy + tick*(ay+ay0)/2;
+      vz = shave*vz + tick*(az+az0)/2;
+      
+      vy100 = vy100+tick*(ay+ay0)/2;
+      vy99 = 0.99*vy99+tick*(ay+ay0)/2;
+      vy95 = 0.95*vy95+tick*(ay+ay0)/2;
+      vy9 = 0.9*vy9+tick*(ay+ay0)/2;
+      vy8 = 0.8*vy8+tick*(ay+ay0)/2;
       
       toggled = false;
-      Serial.println(nIn);
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
         nOut+=1;
         if (nOut>=outMax) {
@@ -147,14 +170,19 @@ bool toggled = false;
       }
   }
     void readings() {
-//      Serial.print("Yaw: ");
-//      Serial.print(yaw);
-//      Serial.print("\tPitch: ");
-//      Serial.print(pitch);
-//      Serial.print("\tRoll: ");
-//      Serial.print(roll);
-//      Serial.println("");
-
+      Serial.print(vy100);
+      Serial.print("\t");
+      Serial.print(vy99);
+      Serial.print("\t");
+      Serial.print(vy95);
+      Serial.print("\t");
+      Serial.print(vy9);
+      Serial.print("\t");
+      Serial.print(vy8);
+      Serial.print("\t");
+      Serial.print("\t");
+      Serial.print(ay-ay0);
+      Serial.println("wtf?");
     }
     int mode = 4;
     void paint() {
@@ -330,7 +358,8 @@ bool toggled = false;
       break;
     }
     float slidet = 4;
-    if (abs(ax)>=slidet || abs(ay)>=slidet) {
+    float jt = 0.5;
+    if (abs(ax)>=slidet || abs(ay)>=slidet || jx >= jt || jy >= jt) {
       strobe_state = (strobe_state+1)%2;
     } else {
       strobe_state = 1;
