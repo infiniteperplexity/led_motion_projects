@@ -35,7 +35,7 @@
     float vpitch;
     float vroll;
 
-    
+
     Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
     void setup(void) {
@@ -67,7 +67,7 @@
       if((millis()-timer)>=20) {  // Main loop runs at 50Hz
         timer_old = timer;
         timer=millis();
- 
+
         sensors();
         readings();
         paint();
@@ -91,13 +91,15 @@ float az = 0;
  float vy = 0;
  float vz = 0;
  float tick = 0.02;
- 
+
  float vy100 = 0;
  float vy99 = 0;
  float vy95 = 0;
  float vy9 = 0;
  float vy8 = 0;
- 
+ float vyplus = 0;
+ float vyminus = 0;
+
 bool inPlane = false;
 float pThresh = 2;
 float sThresh = 5;
@@ -146,13 +148,28 @@ bool toggled = false;
       vx = shave*vx + tick*(ax+ax0)/2;
       vy = shave*vy + tick*(ay+ay0)/2;
       vz = shave*vz + tick*(az+az0)/2;
-      
+
       vy100 = vy100+tick*(ay+ay0)/2;
       vy99 = 0.99*vy99+tick*(ay+ay0)/2;
       vy95 = 0.95*vy95+tick*(ay+ay0)/2;
       vy9 = 0.9*vy9+tick*(ay+ay0)/2;
       vy8 = 0.8*vy8+tick*(ay+ay0)/2;
-      
+
+      // does this make any sense?
+      static float sshave = 0.95;
+      vyplus = sshave*vyplus + (tick*(ay+ay0)>0) ? tick*(ay+ay0) : 0;
+      vyminus = sshave*vyminus + (tick*(ay+ay0)<0) ? tick*(ay+ay0) : 0;
+      float vpt = 3;
+      float vmt = -3;
+      if (vyplus>=vpt) {
+        vyminus = 0;
+      }
+      if (vyminus<=vmt) {
+        vyplus = 0;
+      }
+
+
+
       toggled = false;
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
         nOut+=1;
@@ -163,7 +180,7 @@ bool toggled = false;
       } else {
         nIn+=1;
         nOut=0;
-        if (nIn >= inMin && inPlane==false) { 
+        if (nIn >= inMin && inPlane==false) {
           inPlane = true;
           toggled = true;
         }
@@ -182,7 +199,6 @@ bool toggled = false;
       Serial.print("\t");
       Serial.print("\t");
       Serial.print(ay-ay0);
-      Serial.println("wtf?");
     }
     int mode = 4;
     void paint() {
@@ -208,7 +224,7 @@ bool toggled = false;
       strip2.show();
       strip3.show();
       strip4.show();
-      strip5.show();  
+      strip5.show();
     }
 
     void no_pattern() {
@@ -238,7 +254,7 @@ bool toggled = false;
         }
       }
     }
-    
+
     void gyro_test() {
       int r = 0;
       int g = 0;
@@ -251,13 +267,13 @@ bool toggled = false;
       if (abs(gy)>= yt) {
         r = p*127;
       }
-      //else 
+      //else
       if (abs(gz) >= zt) {
         g = p*127;
       }
       //else
       if (abs(gx) >= xt) {
-        b = p*127;   
+        b = p*127;
       }
       for(uint8_t i=0; i<nLEDs; i++) {
         for(int j = 0; j<nStrips; j++) {
@@ -265,7 +281,7 @@ bool toggled = false;
         }
       }
     }
-    
+
     void plane_test() {
       int r;
       int g;
@@ -313,8 +329,8 @@ bool toggled = false;
         }
       }
     }
-    
-    
+
+
    void multi_pattern() {
     int r = 0;
     int g = 0;
@@ -374,11 +390,11 @@ bool toggled = false;
       for(int j = 0; j<nStrips; j++) {
         if (i==sparkle) {
           strips[j].setPixelColor(i,127,127,127);
-        } else if (sparkle==-1) { 
+        } else if (sparkle==-1) {
           strips[j].setPixelColor(i,strobe_state*r,strobe_state*g,strobe_state*b);
         } else {
           strips[j].setPixelColor(i,0,0,0);
         }
       }
-    }  
+    }
   }
