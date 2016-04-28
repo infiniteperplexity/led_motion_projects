@@ -357,8 +357,8 @@ bool toggled = false;
         b = 127;
       break;
     }
-    float slidet = 4;
-    float jt = 0.5;
+    float slidet = 5;
+    float jt = 0.7;
     if (abs(ax)>=slidet || abs(ay)>=slidet || jx >= jt || jy >= jt) {
       strobe_state = (strobe_state+1)%2;
     } else {
