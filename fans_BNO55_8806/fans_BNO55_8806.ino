@@ -3,7 +3,8 @@
     #include <Adafruit_Sensor.h>
     #include <Adafruit_BNO055.h>
     #include <utility/imumaths.h>
-    #include <Adafruit_NeoPixel.h>
+    #include <SPI.h>
+    #include "LPD8806.h"
     long timer=0;   //general purpuse timer
     long timer_old;
     // Number of RGB LEDs in strand:
@@ -20,12 +21,12 @@
     int dataPin5 = 11;
     int switchPin = 12;
     int ledPin = 13;
-    Adafruit_NeoPixel strip1 = Adafruit_NeoPixel(nLEDs, dataPin1);
-    Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(nLEDs, dataPin2);
-    Adafruit_NeoPixel strip3 = Adafruit_NeoPixel(nLEDs, dataPin3);
-    Adafruit_NeoPixel strip4 = Adafruit_NeoPixel(nLEDs, dataPin4);
-    Adafruit_NeoPixel strip5 = Adafruit_NeoPixel(nLEDs, dataPin5);
-    Adafruit_NeoPixel strips[5] = {strip1, strip2, strip3, strip4, strip5};
+    LPD8806 strip1 = LPD8806(nLEDs, dataPin1, clockPin);
+    LPD8806 strip2 = LPD8806(nLEDs, dataPin2, clockPin);
+    LPD8806 strip3 = LPD8806(nLEDs, dataPin3, clockPin);
+    LPD8806 strip4 = LPD8806(nLEDs, dataPin4, clockPin);
+    LPD8806 strip5 = LPD8806(nLEDs, dataPin5, clockPin);
+    LPD8806 strips[5] = {strip1, strip2, strip3, strip4, strip5};
 
     int yaw;
     int pitch;
