@@ -92,6 +92,7 @@ float az = 0;
  float tick = 0.02;
  
  float vy100 = 0;
+ float vy995 = 0;
  float vy99 = 0;
  float vy95 = 0;
  float vy9 = 0;
@@ -128,30 +129,16 @@ bool toggled = false;
       // gather linear acceleration readings
       imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
       // linear X works and is toward the USB port...12 is somewhat high
-      ax0 = ax;
       ax = linear.x();
-      jx = (ax-ax0);
-      ay0 = ay;
       // linear Y works and is toward the fan tines or handle
       ay = linear.y();
-      jy = (ay-ay0);
-      az0 = az;
       // linear Z works and is the foldy plane
       az = linear.z();
-      jz = (az-az0);
 
       //estimate the velocity;
-      static float shave = 0.95;
-      vx = shave*vx + tick*(ax+ax0)/2;
-      vy = shave*vy + tick*(ay+ay0)/2;
-      vz = shave*vz + tick*(az+az0)/2;
+      estimate_velocity();
       
-      vy100 = vy100+tick*(ay+ay0)/2;
-      vy99 = 0.99*vy99+tick*(ay+ay0)/2;
-      vy95 = 0.95*vy95+tick*(ay+ay0)/2;
-      vy9 = 0.9*vy9+tick*(ay+ay0)/2;
-      vy8 = 0.8*vy8+tick*(ay+ay0)/2;
-      
+      // Detect plane breaks - works pretty well!
       toggled = false;
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
         nOut+=1;
@@ -168,20 +155,76 @@ bool toggled = false;
         }
       }
   }
+  
+  void estimate_velocity() {
+    // ***need to save the callibration factors
+    
+    // discrimination window
+    float dwin = 0.01;
+    float dwinx = dwin;
+    float dwiny = dwin;
+    float dwinz = dwin;
+    float aax = ax;
+    float aay = ay;
+    float aaz = az;
+    if (ax<dwinx) {
+      aax = 0;
+    }
+    if (ay<dwiny) {
+      aay = 0;
+    }
+    if (az<dwinz) {
+      aaz = 0;
+    }
+    
+    // leaky integrator
+    float leak = 0.995;
+    float leakx = leak;
+    float leaky = leak;
+    float leakz = leak;
+    float dvx = tick*(aax+ax0)/2;
+    float dvy = tick*(aay+ay0)/2;
+    float dvz = tick*(aaz+az0)/2;
+    vx = leakx*vx + dvx;
+    vy = leaky*vy + dvy;
+    vz = leakz*vz + dvz;    
+ 
+    //kill velocity and acceleration during spin
+    float sping = 2;
+    float spingx = sping;
+    float spingy = sping;
+    float spingz = sping;
+    float spindelay = 0.5;
+    static float gtimer = 0;
+    if (abs(gx)>spingx || abs(gy)>spingy || abs(gz)>spingz) {
+      gtimer = spindelay;
+    }    
+    gtimer = max(0,gtimer-tick);
+    if (gtimer>0) {
+      aax = 0;
+      aay = 0;
+      aaz = 0;
+      vx = 0;
+      vy = 0;
+      vz = 0;
+    }
+    // save previous acceleration
+    ax0 = aax;
+    ay0 = aay;
+    az0 = aaz;
+  }
+  
     void readings() {
-      Serial.print(vy100);
+      Serial.print(vx);
       Serial.print("\t");
-      Serial.print(vy99);
-      Serial.print("\t");
-      Serial.print(vy95);
-      Serial.print("\t");
-      Serial.print(vy9);
-      Serial.print("\t");
-      Serial.print(vy8);
+      bool xyn = (abs(vx)>0.5);
+      Serial.print(xyn);
       Serial.print("\t");
       Serial.print("\t");
-      Serial.print(ay-ay0);
-      Serial.println("wtf?");
+      Serial.print(vy);
+      Serial.print("\t");
+      bool yyn = (abs(vy)>0.5);
+      Serial.println(yyn);
     }
     int mode = 4;
     void paint() {
@@ -356,9 +399,8 @@ bool toggled = false;
         b = 127;
       break;
     }
-    float slidet = 5;
-    float jt = 0.7;
-    if (abs(ax)>=slidet || abs(ay)>=slidet || jx >= jt || jy >= jt) {
+    float slidet = 0.5;
+    if (abs(vx)>=slidet || abs(vy)>=slidet) {
       strobe_state = (strobe_state+1)%2;
     } else {
       strobe_state = 1;
