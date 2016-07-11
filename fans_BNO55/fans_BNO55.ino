@@ -164,7 +164,7 @@ bool toggled = false;
     // ***need to save the callibration factors
     
     // discrimination window
-    float dwin = 0.01;
+    float dwin = 0.1;
     float dwinx = dwin;
     float dwiny = dwin;
     float dwinz = dwin;
@@ -182,7 +182,7 @@ bool toggled = false;
     }
     
     // leaky integrator
-    float leak = 0.995;
+    float leak = 0.95;
     float leakx = leak;
     float leaky = leak;
     float leakz = leak;
@@ -194,11 +194,11 @@ bool toggled = false;
     vz = leakz*vz + dvz;    
  
     //kill velocity and acceleration during spin
-    float sping = 2;
+    float sping = 4;
     float spingx = sping;
     float spingy = sping;
     float spingz = sping;
-    float spindelay = 0.5;
+    float spindelay = 0.25;
     static float gtimer = 0;
     if (abs(gx)>spingx || abs(gy)>spingy || abs(gz)>spingz) {
       gtimer = spindelay;
@@ -216,19 +216,16 @@ bool toggled = false;
     ax0 = aax;
     ay0 = aay;
     az0 = aaz;
+    Serial.print(aax);
+    Serial.print("\t");
+    Serial.print(aay);
+    Serial.print("\t");
+    Serial.print(aaz);
+    Serial.println("");
   }
   
     void readings() {
-      Serial.print(vx);
-      Serial.print("\t");
-      bool xyn = (abs(vx)>0.5);
-      Serial.print(xyn);
-      Serial.print("\t");
-      Serial.print("\t");
-      Serial.print(vy);
-      Serial.print("\t");
-      bool yyn = (abs(vy)>0.5);
-      Serial.println(yyn);
+      //Serial.println("");
     }
     int mode = 4;
     void paint() {
@@ -403,8 +400,8 @@ bool toggled = false;
         b = 127;
       break;
     }
-    float slidet = 0.5;
-    if (abs(vx)>=slidet || abs(vy)>=slidet) {
+    float slidet = 0.4;
+    if (abs(vx)>=slidet || abs(vy)>=slidet || abs(vz)>=slidet) {
       strobe_state = (strobe_state+1)%2;
     } else {
       strobe_state = 1;
@@ -554,7 +551,7 @@ void checkCalibration() {
   bno.getSensor(&sensor);
   if (bnoID != sensor.sensor_id) {
     Serial.println("\nNo Calibration Data for this sensor exists in EEPROM");
-    //delay(500);
+    delay(500);
   } else {
     Serial.println("\nFound Calibration for this sensor in EEPROM.");
     eeAddress += sizeof(long);
@@ -576,10 +573,10 @@ void checkCalibration() {
   bno.getEvent(&event);
   if (foundCalib){
     Serial.println("Move sensor slightly to calibrate magnetometers");
-    while (!bno.isFullyCalibrated()) {
+    /*while (!bno.isFullyCalibrated()) {
       bno.getEvent(&event);
       delay(BNO055_SAMPLERATE_DELAY_MS);
-    }
+    }*/
   } else {
     Serial.println("Please Calibrate Sensor: ");
     while (!bno.isFullyCalibrated()) {
@@ -597,5 +594,28 @@ void checkCalibration() {
       /* Wait the specified delay before requesting new data */
       delay(BNO055_SAMPLERATE_DELAY_MS);
     }
+  } 
+  Serial.println("\nFully calibrated!");
+  Serial.println("--------------------------------");
+  Serial.println("Calibration Results: ");
+  adafruit_bno055_offsets_t newCalib;
+  bno.getSensorOffsets(newCalib);
+  displaySensorOffsets(newCalib);
+
+  if (foundCalib==false) {
+    Serial.println("\n\nStoring calibration data to EEPROM...");
+  
+    eeAddress = 0;
+    bno.getSensor(&sensor);
+    bnoID = sensor.sensor_id;
+  
+    EEPROM.put(eeAddress, bnoID);
+  
+    eeAddress += sizeof(long);
+    EEPROM.put(eeAddress, newCalib);
+    Serial.println("Data stored to EEPROM.");
+  
+    Serial.println("\n--------------------------------\n");
+    delay(500);
   }
 }  
