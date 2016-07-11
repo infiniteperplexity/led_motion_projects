@@ -8,7 +8,13 @@
     long timer=0;   //general purpuse timer
     long timer_old;
     // Number of RGB LEDs in strand:
-    int nLEDs = 4;
+    int nLEDs;
+    if (Serial) {
+    //if (Serial.available()) {
+      nLEDs = 4;
+    } else {
+      nLEDs = 2;
+    }
     int nStrips = 5;
     // Chose 2 pins for output; can be any valid output pins:
     int imuPower = 15;
@@ -35,7 +41,7 @@
     float vpitch;
     float vroll;
 
-    
+
     Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
     void setup(void) {
@@ -56,7 +62,7 @@
       }
       // check callibration
       checkCalibration();
-      
+
       delay(1000); // is this delay necessary?
       bno.setExtCrystalUse(true);
       for(int i=0; i<nStrips; i++) {
@@ -70,7 +76,7 @@
       if((millis()-timer)>=20) {  // Main loop runs at 50Hz
         timer_old = timer;
         timer=millis();
- 
+
         sensors();
         readings();
         paint();
@@ -94,14 +100,14 @@ float az = 0;
  float vy = 0;
  float vz = 0;
  float tick = 0.02;
- 
+
  float vy100 = 0;
  float vy995 = 0;
  float vy99 = 0;
  float vy95 = 0;
  float vy9 = 0;
  float vy8 = 0;
- 
+
 bool inPlane = false;
 float pThresh = 2;
 float sThresh = 5;
@@ -141,7 +147,7 @@ bool toggled = false;
 
       //estimate the velocity;
       estimate_velocity();
-      
+
       // Detect plane breaks - works pretty well!
       toggled = false;
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
@@ -153,16 +159,16 @@ bool toggled = false;
       } else {
         nIn+=1;
         nOut=0;
-        if (nIn >= inMin && inPlane==false) { 
+        if (nIn >= inMin && inPlane==false) {
           inPlane = true;
           toggled = true;
         }
       }
   }
-  
+
   void estimate_velocity() {
     // ***need to save the callibration factors
-    
+
     // discrimination window
     float dwin = 0.1;
     float dwinx = dwin;
@@ -180,7 +186,7 @@ bool toggled = false;
     if (az<dwinz) {
       aaz = 0;
     }
-    
+
     // leaky integrator
     float leak = 0.95;
     float leakx = leak;
@@ -191,8 +197,8 @@ bool toggled = false;
     float dvz = tick*(aaz+az0)/2;
     vx = leakx*vx + dvx;
     vy = leaky*vy + dvy;
-    vz = leakz*vz + dvz;    
- 
+    vz = leakz*vz + dvz;
+
     //kill velocity and acceleration during spin
     float sping = 4;
     float spingx = sping;
@@ -202,7 +208,7 @@ bool toggled = false;
     static float gtimer = 0;
     if (abs(gx)>spingx || abs(gy)>spingy || abs(gz)>spingz) {
       gtimer = spindelay;
-    }    
+    }
     gtimer = max(0,gtimer-tick);
     if (gtimer>0) {
       aax = 0;
@@ -223,7 +229,7 @@ bool toggled = false;
     Serial.print(aaz);
     Serial.println("");
   }
-  
+
     void readings() {
       //Serial.println("");
     }
@@ -251,7 +257,7 @@ bool toggled = false;
       strip2.show();
       strip3.show();
       strip4.show();
-      strip5.show();  
+      strip5.show();
     }
 
     void no_pattern() {
@@ -281,7 +287,7 @@ bool toggled = false;
         }
       }
     }
-    
+
     void gyro_test() {
       int r = 0;
       int g = 0;
@@ -294,13 +300,13 @@ bool toggled = false;
       if (abs(gy)>= yt) {
         r = p*127;
       }
-      //else 
+      //else
       if (abs(gz) >= zt) {
         g = p*127;
       }
       //else
       if (abs(gx) >= xt) {
-        b = p*127;   
+        b = p*127;
       }
       for(uint8_t i=0; i<nLEDs; i++) {
         for(int j = 0; j<nStrips; j++) {
@@ -308,7 +314,7 @@ bool toggled = false;
         }
       }
     }
-    
+
     void plane_test() {
       int r;
       int g;
@@ -356,8 +362,8 @@ bool toggled = false;
         }
       }
     }
-    
-    
+
+
    void multi_pattern() {
     int r = 0;
     int g = 0;
@@ -416,15 +422,15 @@ bool toggled = false;
       for(int j = 0; j<nStrips; j++) {
         if (i==sparkle) {
           strips[j].setPixelColor(i,127,127,127);
-        } else if (sparkle==-1) { 
+        } else if (sparkle==-1) {
           strips[j].setPixelColor(i,strobe_state*r,strobe_state*g,strobe_state*b);
         } else {
           strips[j].setPixelColor(i,0,0,0);
         }
       }
-    }  
+    }
   }
-  
+
 
 // Code from Adafruit's sensor library
 
@@ -562,13 +568,13 @@ void checkCalibration() {
     Serial.println("\n\nCalibration data loaded into BNO055");
     foundCalib = true;
   }
-  
+
   /* Display some basic information on this sensor */
   displaySensorDetails();
 
   /* Optional: Display current status */
   displaySensorStatus();
-  
+
   sensors_event_t event;
   bno.getEvent(&event);
   if (foundCalib){
@@ -594,7 +600,7 @@ void checkCalibration() {
       /* Wait the specified delay before requesting new data */
       delay(BNO055_SAMPLERATE_DELAY_MS);
     }
-  } 
+  }
   Serial.println("\nFully calibrated!");
   Serial.println("--------------------------------");
   Serial.println("Calibration Results: ");
@@ -604,18 +610,18 @@ void checkCalibration() {
 
   if (foundCalib==false) {
     Serial.println("\n\nStoring calibration data to EEPROM...");
-  
+
     eeAddress = 0;
     bno.getSensor(&sensor);
     bnoID = sensor.sensor_id;
-  
+
     EEPROM.put(eeAddress, bnoID);
-  
+
     eeAddress += sizeof(long);
     EEPROM.put(eeAddress, newCalib);
     Serial.println("Data stored to EEPROM.");
-  
+
     Serial.println("\n--------------------------------\n");
     delay(500);
   }
-}  
+}
