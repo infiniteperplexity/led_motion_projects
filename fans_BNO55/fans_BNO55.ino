@@ -180,8 +180,6 @@ bool toggled = false;
   }
 
   void estimate_velocity() {
-    // ***need to save the callibration factors
-
     // discrimination window
     float dwin = 0.1;
     float dwinx = dwin;
@@ -199,7 +197,6 @@ bool toggled = false;
     if (abs(az)<dwinz) {
       aaz = 0;
     }
-
     // leaky integrator
     float leak = 0.98;
     float leakx = leak;
@@ -211,7 +208,6 @@ bool toggled = false;
     vx = leakx*vx + dvx;
     vy = leaky*vy + dvy;
     vz = leakz*vz + dvz;
-
     //kill velocity and acceleration during spin
     float sping = 4;
     float spingx = sping;
@@ -222,15 +218,6 @@ bool toggled = false;
     if (abs(gx)>spingx || abs(gy)>spingy || abs(gz)>spingz) {
       gtimer = spindelay;
     }
-    gtimer = max(0,gtimer-tick);
-    if (gtimer>0) {
-      aax = 0;
-      aay = 0;
-      aaz = 0;
-      vx = 0;
-      vy = 0;
-      vz = 0;
-    }
     //kill velocity and acceleration after lurch
     float vthresh = 1;
     static int vxdir = 0;
@@ -240,8 +227,6 @@ bool toggled = false;
     static float lurchtimer = 0;
     if (vy>0 && abs(vy)>abs(vx) && abs(vy)>abs(vz)) {
       if (vydir == -1) {
-        vy = 0;
-        aay = 0;
         vydir = 0;
         lurchtimer = lurchdelay;
       } else {
@@ -250,8 +235,6 @@ bool toggled = false;
     }
     if (vy<0 && abs(vy)>abs(vx) && abs(vy)>abs(vz)) {
       if (vydir == 1) {
-        vy = 0;
-        aay = 0;
         vydir = 0;
         lurchtimer = lurchdelay;
       } else {
@@ -260,8 +243,6 @@ bool toggled = false;
     }
     if (vx>0 && abs(vx)>abs(vy) && abs(vx)>abs(vz)) {
       if (vxdir == -1) {
-        vx = 0;
-        aax = 0;
         vxdir = 0;
         lurchtimer = lurchdelay;
       } else {
@@ -270,8 +251,6 @@ bool toggled = false;
     }
     if (vx<0 && abs(vx)>abs(vy) && abs(vx)>abs(vz)) {
       if (vxdir == 1) {
-        vx = 0;
-        aax = 0;
         vxdir = 0;
         lurchtimer = lurchdelay;
       } else {
@@ -280,26 +259,23 @@ bool toggled = false;
     }
     if (vz>0 && abs(vz)>abs(vy) && abs(vz)>abs(vx)) {
       if (vzdir == -1) {
-        vz = 0;
-        aaz = 0;
         vzdir = 0;
         lurchtimer = lurchdelay;
       } else {
         vzdir = 0;
       }
     }
-    if (vz<0 && abs(vz)>abs(vy) && abs(vz                 )>abs(vx)) {
+    if (vz<0 && abs(vz)>abs(vy) && abs(vz)>abs(vx)) {
       if (vzdir == 1) {
-        vz = 0;
-        aaz = 0;
         vzdir = 0;
         lurchtimer = lurchdelay;
       } else {
         vzdir = -1;
       }
     }
+    gtimer = max(0,gtimer-tick);
     lurchtimer = max(0,lurchtimer-tick);
-    if (lurchtimer>0) {
+    if (gtimer>0 || lurchtimer>0) {
       aax = 0;
       aay = 0;
       aaz = 0;
@@ -307,17 +283,10 @@ bool toggled = false;
       vy = 0;
       vz = 0;
     }
-      
     // save previous acceleration
     ax0 = aax;
     ay0 = aay;
     az0 = aaz;
-    Serial.print(aax);
-    Serial.print("\t");
-    Serial.print(aay);
-    Serial.print("\t");
-    Serial.print(aaz);
-    Serial.println("");
   }
 
   void readings() {
