@@ -7,15 +7,8 @@
     #include <EEPROM.h>
     long timer=0;   //general purpuse timer
     long timer_old;
-    // Number of RGB LEDs in strand:
-    int nLEDs;
-    if (Serial) {
-    //if (Serial.available()) {
-      nLEDs = 4;
-    } else {
-      nLEDs = 2;
-    }
-    int nStrips = 5;
+
+    
     // Chose 2 pins for output; can be any valid output pins:
     int imuPower = 15;
     int imuGround = 17;
@@ -27,12 +20,15 @@
     int dataPin5 = 11;
     int switchPin = 12;
     int ledPin = 13;
-    Adafruit_NeoPixel strip1 = Adafruit_NeoPixel(nLEDs, dataPin1);
-    Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(nLEDs, dataPin2);
-    Adafruit_NeoPixel strip3 = Adafruit_NeoPixel(nLEDs, dataPin3);
-    Adafruit_NeoPixel strip4 = Adafruit_NeoPixel(nLEDs, dataPin4);
-    Adafruit_NeoPixel strip5 = Adafruit_NeoPixel(nLEDs, dataPin5);
-    Adafruit_NeoPixel strips[5] = {strip1, strip2, strip3, strip4, strip5};
+    int nStrips = 5;
+    // Number of RGB LEDs in strand:
+    int nLEDs;
+    Adafruit_NeoPixel strip1;
+    Adafruit_NeoPixel strip2;
+    Adafruit_NeoPixel strip3;
+    Adafruit_NeoPixel strip4;
+    Adafruit_NeoPixel strip5;
+    Adafruit_NeoPixel strips[5];
 
     int yaw;
     int pitch;
@@ -53,6 +49,23 @@
       digitalWrite(imuGround, LOW);
       delay(10);
       Serial.begin(9600);
+      delay(250);
+      if (Serial) {
+        nLEDs = 4;
+      } else {
+        nLEDs = 8;
+      }  
+      strip1 = Adafruit_NeoPixel(nLEDs, dataPin1);
+      strip2 = Adafruit_NeoPixel(nLEDs, dataPin2);
+      strip3 = Adafruit_NeoPixel(nLEDs, dataPin3);
+      strip4 = Adafruit_NeoPixel(nLEDs, dataPin4);
+      strip5 = Adafruit_NeoPixel(nLEDs, dataPin5);
+      strips[0] = strip1;
+      strips[1] = strip2;
+      strips[2] = strip3;
+      strips[3] = strip4;
+      strips[4] = strip5;
+    
       /* Initialise the sensor */
       if(!bno.begin())
       {
@@ -76,9 +89,9 @@
       if((millis()-timer)>=20) {  // Main loop runs at 50Hz
         timer_old = timer;
         timer=millis();
-
         sensors();
         readings();
+        Read_Switch();
         paint();
       }
     }
@@ -177,18 +190,18 @@ bool toggled = false;
     float aax = ax;
     float aay = ay;
     float aaz = az;
-    if (ax<dwinx) {
+    if (abs(ax)<dwinx) {
       aax = 0;
     }
-    if (ay<dwiny) {
+    if (abs(ay)<dwiny) {
       aay = 0;
     }
-    if (az<dwinz) {
+    if (abs(az)<dwinz) {
       aaz = 0;
     }
 
     // leaky integrator
-    float leak = 0.95;
+    float leak = 0.98;
     float leakx = leak;
     float leaky = leak;
     float leakz = leak;
@@ -218,6 +231,83 @@ bool toggled = false;
       vy = 0;
       vz = 0;
     }
+    //kill velocity and acceleration after lurch
+    float vthresh = 1;
+    static int vxdir = 0;
+    static int vydir = 0;
+    static int vzdir = 0;
+    float lurchdelay = 0.1;
+    static float lurchtimer = 0;
+    if (vy>0 && abs(vy)>abs(vx) && abs(vy)>abs(vz)) {
+      if (vydir == -1) {
+        vy = 0;
+        aay = 0;
+        vydir = 0;
+        lurchtimer = lurchdelay;
+      } else {
+        vydir = 1;
+      }
+    }
+    if (vy<0 && abs(vy)>abs(vx) && abs(vy)>abs(vz)) {
+      if (vydir == 1) {
+        vy = 0;
+        aay = 0;
+        vydir = 0;
+        lurchtimer = lurchdelay;
+      } else {
+        vydir = -1;
+      }
+    }
+    if (vx>0 && abs(vx)>abs(vy) && abs(vx)>abs(vz)) {
+      if (vxdir == -1) {
+        vx = 0;
+        aax = 0;
+        vxdir = 0;
+        lurchtimer = lurchdelay;
+      } else {
+        vxdir = 0;
+      }
+    }
+    if (vx<0 && abs(vx)>abs(vy) && abs(vx)>abs(vz)) {
+      if (vxdir == 1) {
+        vx = 0;
+        aax = 0;
+        vxdir = 0;
+        lurchtimer = lurchdelay;
+      } else {
+        vxdir = -1;
+      }
+    }
+    if (vz>0 && abs(vz)>abs(vy) && abs(vz)>abs(vx)) {
+      if (vzdir == -1) {
+        vz = 0;
+        aaz = 0;
+        vzdir = 0;
+        lurchtimer = lurchdelay;
+      } else {
+        vzdir = 0;
+      }
+    }
+    if (vz<0 && abs(vz)>abs(vy) && abs(vz                 )>abs(vx)) {
+      if (vzdir == 1) {
+        vz = 0;
+        aaz = 0;
+        vzdir = 0;
+        lurchtimer = lurchdelay;
+      } else {
+        vzdir = -1;
+      }
+    }
+    lurchtimer = max(0,lurchtimer-tick);
+    if (lurchtimer>0) {
+      aax = 0;
+      aay = 0;
+      aaz = 0;
+      vx = 0;
+      vy = 0;
+      vz = 0;
+    }
+      
     // save previous acceleration
     ax0 = aax;
     ay0 = aay;
