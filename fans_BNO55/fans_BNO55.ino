@@ -8,7 +8,7 @@
     long timer=0;   //general purpuse timer
     long timer_old;
 
-    
+
     // Chose 2 pins for output; can be any valid output pins:
     int imuPower = 15;
     int imuGround = 17;
@@ -54,7 +54,7 @@
         nLEDs = 4;
       } else {
         nLEDs = 8;
-      }  
+      }
       strip1 = Adafruit_NeoPixel(nLEDs, dataPin1);
       strip2 = Adafruit_NeoPixel(nLEDs, dataPin2);
       strip3 = Adafruit_NeoPixel(nLEDs, dataPin3);
@@ -65,7 +65,7 @@
       strips[2] = strip3;
       strips[3] = strip4;
       strips[4] = strip5;
-    
+
       /* Initialise the sensor */
       if(!bno.begin())
       {
@@ -218,6 +218,41 @@ bool toggled = false;
     if (abs(gx)>spingx || abs(gy)>spingy || abs(gz)>spingz) {
       gtimer = spindelay;
     }
+
+    ////alternate lurch
+    //exponentially weighted moving average
+    // this method looks for a big acceleration opposed to the movement
+    float vthresh = 1;
+    float athresh = 1;
+    static float ewmavx = vx;
+    static float ewmavy = vy;
+    static float ewmavz = vz;
+    float alpha = 0.2;
+    float alphax = alpha;
+    float alphay = alpha;
+    float alphaz = alpha;
+    ewmavx = (1-alpha)*ewmavx + alpha*vx;
+    ewmavz = (1-alpha)*ewmavy + alpha*vy;
+    ewmavz = (1-alpha)*ewmavz + alpha*vz;
+    //dot product
+    float vlength= sqrt(ewmavx*ewmavx+ewmavy*ewmavy+ewmavz*ewmavz);
+    float dotproduct = (aax*ewmavx + aay*ewmavy +aaz*ewmavz)/vlength;
+    if (abs(vlength)>vthresh && dotproduct < -athresh) {
+      // do something
+    }
+
+    /*
+    // or, look for its own overcorrection
+    float dotproduct = (vx*ewmavx + vy*ewmavy +vz*ewmavz)/vlength;
+    if (dotproduct<0) {
+      // do something
+    }
+    */
+
+
+
+
+    /*
     //kill velocity and acceleration after lurch
     float vthresh = 1;
     static int vxdir = 0;
@@ -272,10 +307,28 @@ bool toggled = false;
       } else {
         vzdir = -1;
       }
+    } */
+    //stop detection
+    float athresh = dwin;
+    float athreshx = athresh;
+    float athreshy = athresh;
+    float athreshz = athresh;
+    float stopdelay = 0.5;
+    static float stoptimer = stopdelay;
+    if (aax < athreshx && aay < athreshy && aaz > athreshz) {
+      stoptimer = max(0,stoptimer-tick);
+    } else {
+      stoptimer = stopdelay;
     }
     gtimer = max(0,gtimer-tick);
     lurchtimer = max(0,lurchtimer-tick);
-    if (gtimer>0 || lurchtimer>0) {
+    if (
+        gtimer>0
+        ||
+        lurchtimer>0
+        ||
+        stoptimer==0
+      ) {
       aax = 0;
       aay = 0;
       aaz = 0;
