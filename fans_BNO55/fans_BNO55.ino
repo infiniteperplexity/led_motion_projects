@@ -74,8 +74,13 @@
         while(1);
       }
       // check callibration
-      checkCalibration();
-
+      // but only for fan #1.  fan #2 is horribly miscalibrated for some reason
+      int numAddress = 666;
+      int fanNumber;
+      EEPROM.get(numAddress, fanNumber);
+      if (fanNumber==1) {
+        checkCalibration();
+      }
       delay(1000); // is this delay necessary?
       bno.setExtCrystalUse(true);
       for(int i=0; i<nStrips; i++) {
@@ -209,6 +214,7 @@ bool toggled = false;
     vy = leaky*vy + dvy;
     vz = leakz*vz + dvz;
     //kill velocity and acceleration during spin
+    
     float sping = 4;
     float spingx = sping;
     float spingy = sping;
@@ -218,114 +224,21 @@ bool toggled = false;
     if (abs(gx)>spingx || abs(gy)>spingy || abs(gz)>spingz) {
       gtimer = spindelay;
     }
-
-    ////alternate lurch
-    //exponentially weighted moving average
-    // this method looks for a big acceleration opposed to the movement
-    float vthresh = 1;
-    float athresh = 1;
-    static float ewmavx = vx;
-    static float ewmavy = vy;
-    static float ewmavz = vz;
-    float alpha = 0.2;
-    float alphax = alpha;
-    float alphay = alpha;
-    float alphaz = alpha;
-    ewmavx = (1-alpha)*ewmavx + alpha*vx;
-    ewmavz = (1-alpha)*ewmavy + alpha*vy;
-    ewmavz = (1-alpha)*ewmavz + alpha*vz;
-    //dot product
-    float vlength= sqrt(ewmavx*ewmavx+ewmavy*ewmavy+ewmavz*ewmavz);
-    float dotproduct = (aax*ewmavx + aay*ewmavy +aaz*ewmavz)/vlength;
-    if (abs(vlength)>vthresh && dotproduct < -athresh) {
-      // do something
-    }
-
-    /*
-    // or, look for its own overcorrection
-    float dotproduct = (vx*ewmavx + vy*ewmavy +vz*ewmavz)/vlength;
-    if (dotproduct<0) {
-      // do something
-    }
-    */
-
-
-
-
-    /*
-    //kill velocity and acceleration after lurch
-    float vthresh = 1;
-    static int vxdir = 0;
-    static int vydir = 0;
-    static int vzdir = 0;
-    float lurchdelay = 0.1;
-    static float lurchtimer = 0;
-    if (vy>0 && abs(vy)>abs(vx) && abs(vy)>abs(vz)) {
-      if (vydir == -1) {
-        vydir = 0;
-        lurchtimer = lurchdelay;
-      } else {
-        vydir = 1;
-      }
-    }
-    if (vy<0 && abs(vy)>abs(vx) && abs(vy)>abs(vz)) {
-      if (vydir == 1) {
-        vydir = 0;
-        lurchtimer = lurchdelay;
-      } else {
-        vydir = -1;
-      }
-    }
-    if (vx>0 && abs(vx)>abs(vy) && abs(vx)>abs(vz)) {
-      if (vxdir == -1) {
-        vxdir = 0;
-        lurchtimer = lurchdelay;
-      } else {
-        vxdir = 0;
-      }
-    }
-    if (vx<0 && abs(vx)>abs(vy) && abs(vx)>abs(vz)) {
-      if (vxdir == 1) {
-        vxdir = 0;
-        lurchtimer = lurchdelay;
-      } else {
-        vxdir = -1;
-      }
-    }
-    if (vz>0 && abs(vz)>abs(vy) && abs(vz)>abs(vx)) {
-      if (vzdir == -1) {
-        vzdir = 0;
-        lurchtimer = lurchdelay;
-      } else {
-        vzdir = 0;
-      }
-    }
-    if (vz<0 && abs(vz)>abs(vy) && abs(vz)>abs(vx)) {
-      if (vzdir == 1) {
-        vzdir = 0;
-        lurchtimer = lurchdelay;
-      } else {
-        vzdir = -1;
-      }
-    } */
     //stop detection
-    float athresh = dwin;
-    float athreshx = athresh;
-    float athreshy = athresh;
-    float athreshz = athresh;
-    float stopdelay = 0.5;
+    float sthresh = 0.5;
+    float sthreshx = sthresh;
+    float sthreshy = sthresh;
+    float sthreshz = sthresh;
+    float stopdelay = 0.1;
     static float stoptimer = stopdelay;
-    if (aax < athreshx && aay < athreshy && aaz > athreshz) {
+    if (aax < sthreshx && aay < sthreshy && aaz < sthreshz) {
       stoptimer = max(0,stoptimer-tick);
     } else {
       stoptimer = stopdelay;
     }
     gtimer = max(0,gtimer-tick);
-    lurchtimer = max(0,lurchtimer-tick);
     if (
         gtimer>0
-        ||
-        lurchtimer>0
         ||
         stoptimer==0
       ) {
