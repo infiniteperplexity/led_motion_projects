@@ -9,6 +9,12 @@
     long timer_old;
 
 
+    // Manual status flags
+    bool fan_1_recalibrate = false;
+    bool fan_1_skip_calibrate = false;
+    bool fan_2_recalibrate = true;
+    bool fan_2_skip_calibrate = false;
+
     // Chose 2 pins for output; can be any valid output pins:
     int imuPower = 15;
     int imuGround = 17;
@@ -78,7 +84,7 @@
       int numAddress = 666;
       int fanNumber;
       EEPROM.get(numAddress, fanNumber);
-      if (fanNumber==1) {
+      if ((fanNumber==1 && fan_1_skip_calibrate==false) || (fanNumber==2 && fan_2_skip_calibrate==false)) {
         checkCalibration();
       }
       delay(1000); // is this delay necessary?
@@ -214,7 +220,7 @@ bool toggled = false;
     vy = leaky*vy + dvy;
     vz = leakz*vz + dvz;
     //kill velocity and acceleration during spin
-    
+
     float sping = 4;
     float spingx = sping;
     float spingy = sping;
@@ -601,6 +607,9 @@ void checkCalibration() {
     foundCalib = true;
   }
 
+  if ((fanNumber==1 && fan_1_recalibrate==true) || (fanNumber==2 && fan_2_recalibrate==true)) {
+    foundCalib = false;
+  }
   /* Display some basic information on this sensor */
   displaySensorDetails();
 
