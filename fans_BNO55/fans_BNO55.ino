@@ -12,7 +12,7 @@
     // Manual status flags
     bool fan_1_recalibrate = false;
     bool fan_1_skip_calibrate = false;
-    bool fan_2_recalibrate = true;
+    bool fan_2_recalibrate = false;
     bool fan_2_skip_calibrate = false;
 
     // Chose 2 pins for output; can be any valid output pins:
@@ -29,6 +29,7 @@
     int nStrips = 5;
     // Number of RGB LEDs in strand:
     int nLEDs;
+    int fanNumber;
     Adafruit_NeoPixel strip1;
     Adafruit_NeoPixel strip2;
     Adafruit_NeoPixel strip3;
@@ -82,7 +83,7 @@
       // check callibration
       // but only for fan #1.  fan #2 is horribly miscalibrated for some reason
       int numAddress = 666;
-      int fanNumber;
+      
       EEPROM.get(numAddress, fanNumber);
       if ((fanNumber==1 && fan_1_skip_calibrate==false) || (fanNumber==2 && fan_2_skip_calibrate==false)) {
         checkCalibration();
