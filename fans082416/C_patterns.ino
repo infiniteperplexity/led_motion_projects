@@ -28,7 +28,27 @@
       }
     }
 
-    void gyro_test() {
+    void slide_test() {
+      static int p = 0;
+      p = (p+1)%2;
+      int r = 0;
+      int g = 0;
+      int b = 0;
+      float vvx = constrain(vx,-2,2);
+      float vvy = constrain(vy,-2,2);
+      float vvz = constrain(vz,-2,2);
+      //Serial.println(vvx);
+      r = p*map(abs(vvx),0,2,0,127);
+      g = p*map(abs(vvy),0,2,0,127);
+      b = p*map(abs(vvz),0,2,0,127);
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,r,g,b);
+        }
+      }
+    }
+
+    void acel_test() {
       int r = 0;
       int g = 0;
       int b = 0;
@@ -36,6 +56,33 @@
       p = (p+1)%2;
       float xt = 5;
       float yt = 5;
+      float zt = 5;
+      if (abs(ay)>= yt) {
+        r = p*127;
+      }
+      //else
+      if (abs(az) >= zt) {
+        g = p*127;
+      }
+      //else
+      if (abs(ax) >= xt) {
+        b = p*127;
+      }
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,r,g,b);
+        }
+      }
+    }
+
+    void gyro_test() {
+      int r = 0;
+      int g = 0;
+      int b = 0;
+      static int p = 0;
+      p = (p+1)%2;
+      float xt = 5;
+      float yt = 5;her
       float zt = 5;
       if (abs(gy)>= yt) {
         r = p*127;
