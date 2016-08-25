@@ -1,18 +1,25 @@
-
-
+  int yaw;
+  int pitch;
+  int roll;
   float gx;
   float gy;
   float gz;
-
   float az = 0;
   float ax = 0;
   float ay = 0;
   float ax0;
   float ay0;
   float az0;
-  float jx;
-  float jy;
-  float jz;
+  float cx=0;
+  float cy=0;
+  float cz=0;
+  float cx0;
+  float cy0;
+  float cz0;
+  float cvx;
+  float cvy;
+  float cvz;
+
   float vx = 0;
   float vy = 0;
   float vz = 0;
@@ -42,10 +49,6 @@
       yaw = event.orientation.x;
       pitch = event.orientation.z+180;
       roll = (event.orientation.x>180) ? (event.orientation.y+90) : (270-event.orientation.y);
-      // gather gyroscope readings
-      vyaw = event.gyro.z;
-      vpitch = event.gyro.y;
-      vroll = event.gyro.x;
       imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
       //gx works and it's the foldy plane...7 is reasonably high
       gx = gyro.x();
@@ -61,7 +64,22 @@
       ay = linear.y();
       // linear Z works and is the foldy plane
       az = linear.z();
-
+      imu::Vector<3> compass = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+      cx0 = cx;
+      cy0 = cy;
+      cz0 = cz;
+      cx = compass.x();
+      cy = compass.y();
+      cz = compass.z();
+      Serial.print(cx);
+      Serial.print("  ");
+      Serial.print(cy);
+      Serial.print("  ");
+      Serial.print(cz);
+      Serial.println("  ");
+      cvx = cx-cx0;
+      cvy = cy-cy0;
+      cvz = cz-cz0;
       //estimate the velocity;
       estimate_velocity();
 

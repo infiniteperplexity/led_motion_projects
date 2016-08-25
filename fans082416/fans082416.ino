@@ -36,15 +36,6 @@
     Adafruit_NeoPixel strip4;
     Adafruit_NeoPixel strip5;
     Adafruit_NeoPixel strips[5];
-
-    int yaw;
-    int pitch;
-    int roll;
-    float vyaw;
-    float vpitch;
-    float vroll;
-
-
     Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
     void setup(void) {

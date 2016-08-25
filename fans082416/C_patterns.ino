@@ -1,3 +1,26 @@
+/*
+Types of pattern...
+- Sparkles chasing up or down tines
+- Gradients chasing up or down tines
+- Sparkles in place
+- Strobing solid colors
+- Strobing between colors
+- Changing solid colors
+- Square grid-based patterns
+- Fade to brighter or dimmer
+- Fade across rainbow
+*/
+/*
+Types of motion...
+- Integrated linear velocity
+- Differentiated compass velocity
+- Angular velocity (x, y, z)
+- Linear acceleration
+- Compass orientation
+- Absolute linear acceleration or velocity relative to gravity?
+- Halts in angular velocity (i.e. plane change)
+- Stillness
+*/
     void no_pattern() {
       for(uint8_t i=0; i<nLEDs; i++) {
         for(int j = 0; j<nStrips; j++) {
