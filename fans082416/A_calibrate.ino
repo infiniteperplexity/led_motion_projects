@@ -1,8 +1,3 @@
-    // Manual status flags
-    bool fan_1_recalibrate = false;
-    bool fan_1_skip_calibrate = false;
-    bool fan_2_recalibrate = false;
-    bool fan_2_skip_calibrate = false;
 
 // Code from Adafruit's sensor library
 
