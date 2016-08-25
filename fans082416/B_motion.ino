@@ -66,6 +66,11 @@
       estimate_velocity();
 
       // Detect plane breaks - works pretty well!
+      static float toggletimer = 0;
+      float toggletimeout = 500;
+      if (toggletimer>0) {
+        toggletimer = toggletimer-tick;
+      }
       toggled = false;
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
         nOut+=1;
@@ -73,12 +78,13 @@
           nIn = 0;
           inPlane = false;
         }
-      } else {
+      } else if (toggletimer>0){
         nIn+=1;
         nOut=0;
         if (nIn >= inMin && inPlane==false) {
           inPlane = true;
           toggled = true;
+          toggletimer = toggletimeout;
         }
       }
   }

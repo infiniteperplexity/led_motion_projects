@@ -122,7 +122,8 @@
     //eventually this should use function pointers
     switch(mode) {
       case 1:
-        multi_pattern();
+        //multi_pattern();
+        gyro_test();
       break;
       default: // typically case 0
         no_pattern();
