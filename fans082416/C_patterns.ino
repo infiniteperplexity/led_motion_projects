@@ -51,6 +51,35 @@ Types of motion...
       }
     }
 
+    void compass_test() {
+      int r;
+      int g;
+      int b;
+      int yyaw = yaw*100;
+      if (yyaw>=0 and yyaw<(200*PI/3)) {
+        r = map(yyaw,0,200*PI/3,127,0);
+        g = map(yyaw,0,200*PI/3,0,127);
+        b = 0;
+      } else if (yyaw>=(200*PI/3) && yyaw<(100*PI)) {
+        r = 0;
+        g = map(yyaw,200*PI/3,100*PI,127,64);
+        b = map(yyaw,200*PI/3,100*PI,0,63);
+      } else if (yyaw>=(-100*PI) && yyaw<(-200*PI/3)) {
+        r = 0;
+        g = map(yyaw,-100*PI,-200*PI/3,63,0);
+        b = map(yyaw,-100*PI,-200*PI/3,64,127);
+      } else {
+        r = map(yyaw,-200*PI/3,0,0,127);
+        g = 0;
+        b = map(yyaw,-200*PI/3,0,127,0);
+      }
+      for(uint8_t i=0; i<nLEDs; i++) {
+        for(int j = 0; j<nStrips; j++) {
+          strips[j].setPixelColor(i,r,g,b);
+        }
+      }
+    }
+
     void slide_test() {
       static int p = 0;
       p = (p+1)%2;
@@ -102,25 +131,12 @@ Types of motion...
       int r = 0;
       int g = 0;
       int b = 0;
-      static int p = 0;
-      p = (p+1)%2;
-      float xt = 5;
-      float yt = 5;her
-      float zt = 5;
-      if (abs(gy)>= yt) {
-        r = p*127;
-      }
-      //else
-      if (abs(gz) >= zt) {
-        g = p*127;
-      }
-      //else
-      if (abs(gx) >= xt) {
-        b = p*127;
-      }
+      float gr = constrain(abs(gx),0,10)/10.0;
+      float gg = constrain(abs(gy),0,10)/10.0;
+      float gb = constrain(abs(gz),0,10)/10.0;
       for(uint8_t i=0; i<nLEDs; i++) {
         for(int j = 0; j<nStrips; j++) {
-          strips[j].setPixelColor(i,r,g,b);
+          strips[j].setPixelColor(i,gr*127,gg*127,gb*127);
         }
       }
     }
@@ -179,7 +195,6 @@ Types of motion...
     int g = 0;
     int b = 0;
     static int color = 0;
-    static int strobe_state = 1;
     static int sparkle = -1;
     if (inPlane==true && toggled==true) {
       color = (color+1)%6;
@@ -217,11 +232,12 @@ Types of motion...
       break;
     }
     float slidet = 0.4;
-    if (abs(vx)>=slidet || abs(vy)>=slidet || abs(vz)>=slidet) {
-      strobe_state = (strobe_state+1)%2;
-    } else {
-      strobe_state = 1;
-    }
+    // Measure linear movement, with a maximum
+    float brightness = max(abs(vx),abs(vy),abs(vz),1.0);
+    // re-map that from 50% to 100%.
+    brightness = brightness*100;
+    brightness = map(brightness,0,100,50,100);
+    brightness = brightness / 100;
     float gt = 5;
     if (abs(gz)>=gt) {
       sparkle = (sparkle+1)%nLEDs;
@@ -233,7 +249,7 @@ Types of motion...
         if (i==sparkle) {
           strips[j].setPixelColor(i,127,127,127);
         } else if (sparkle==-1) {
-          strips[j].setPixelColor(i,strobe_state*r,strobe_state*g,strobe_state*b);
+          strips[j].setPixelColor(i,brightness*r,brightness*g,brightness*b);
         } else {
           strips[j].setPixelColor(i,0,0,0);
         }

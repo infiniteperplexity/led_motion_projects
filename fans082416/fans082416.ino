@@ -98,7 +98,7 @@
       }
     }
   int mode = 0;
-  int nModes = 2;
+  int nModes = 4;
   void button() {
     static int readState = LOW;
     int reading = digitalRead(switchPin);
@@ -113,8 +113,13 @@
     //eventually this should use function pointers
     switch(mode) {
       case 1:
-        //multi_pattern();
+        multi_pattern();
+      break;
+      case 2:
         gyro_test();
+      break;
+      case 3:
+        compass_test();
       break;
       default: // typically case 0
         no_pattern();
