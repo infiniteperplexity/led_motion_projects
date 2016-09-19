@@ -68,15 +68,9 @@
       cx0 = cx;
       cy0 = cy;
       cz0 = cz;
-      cx = compass.x();
+      cx = compass.x(); 
       cy = compass.y();
       cz = compass.z();
-      Serial.print(cx);
-      Serial.print("  ");
-      Serial.print(cy);
-      Serial.print("  ");
-      Serial.print(cz);
-      Serial.println("  ");
       cvx = cx-cx0;
       cvy = cy-cy0;
       cvz = cz-cz0;
@@ -85,18 +79,20 @@
 
       // Detect plane breaks - works pretty well!
       static float toggletimer = 0;
-      float toggletimeout = 500;
+      float toggletimeout = 0.5;
       if (toggletimer>0) {
         toggletimer = toggletimer-tick;
       }
       toggled = false;
+      Serial.println(toggletimer);
       if (abs(gz) < sThresh && (abs(gx) >= pThresh || abs(gy) >= pThresh)) {
         nOut+=1;
         if (nOut>=outMax) {
           nIn = 0;
           inPlane = false;
         }
-      } else if (toggletimer>0){
+      //} else {
+      } else if (toggletimer<=0){
         nIn+=1;
         nOut=0;
         if (nIn >= inMin && inPlane==false) {
