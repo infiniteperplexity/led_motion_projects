@@ -1,3 +1,4 @@
+#light_and_motion
 
 This repository stores code and other files for several experiments with motion-sensing props for dance and flow arts.
 
