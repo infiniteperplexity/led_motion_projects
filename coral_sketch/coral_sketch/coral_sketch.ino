@@ -32,15 +32,31 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 }
 
+// time keeps on ticking...
+void tick()
+{
+  static float time = 0;
+  time += 1;
+}
+
 // enumerate patterns, which is the top-level choice
-enum StripMap {RAINBOW};
-static enum activePattern = RAINBOW;
+enum Pattern {RAINBOW};
+
 
 void loop() {
+  // we probably need a better way to choose patterns but this will do for now
+  static Pattern activePattern = RAINBOW;
+  // probably should do this instead
+  //static void (*pattern)(void) = &rainbow;
   if (activePattern == RAINBOW)
   {
     rainbowCycle(20);
   }
+  else
+  {
+    rainbow(20);
+  }
+  tick();
 }
 
 // the pattern definitions are the next level, but they will be listed at the end
@@ -48,9 +64,9 @@ void loop() {
 // mapped dispatch assigns various abstracted pixel numbers to numbered LEDs
 // most patterns should invoke mappedDispatch, but some might skip to pixelDispath
 enum StripMap {DEFAULT};
-StripMap activeMap = DEFAULT;
 void mappedDispatch(uint8_t pixel, uint32_t color)
 {
+  StripMap activeMap = DEFAULT;
   if (activeMap == DEFAULT)
   {
     pixelDispatch(pixel, color);
@@ -69,34 +85,28 @@ void bleachedDispatch(uint8_t pixel, uint32_t color)
     strip.setPixelColor(pixel, bleach(color));
 }
 
-
-// map pixel numbers from the patterns to 
-
-
-// helper functions to extract RGB components from 32-bit color, I might be duplicating existing functions
-uint8_t getRed(uint32_t color)
-{
-  return 255;
-}
-uint8_t getGreen(uint32_t color)
-{
-  return 255;
-}
-uint8_t getBlue(uint32_t color)
-{
-  return 255;
-}
-
-
-
-
-
+// should we do these just as numbers?  
+enum BleachMethod{NOBLEACH, WHITE, LINEAR}
 uint32_t bleach(uint32_t color)
 {
+  static BleachMethod activeBleachMethod = NOBLEACH;
+  if (activeBleachMethod == NOBLEACH)
+  {
+    return color;
+  }
+  else if (activeBleachMethod == WHITE)
+  {
+    // I think this is black, not white
+    return 0;
+  }
+  else if (activeBleachMethod == LINEAR)
+  {
+    return linearBleach(color);
+  }
   return color;
 }
 
-uint32_t bleach_dev(uint32_t color)
+uint32_t linearBleach(uint32_t color)
 {
   // need to revese engineer the color method from the strip
   // but let's assume we've handled that and we've got
@@ -113,6 +123,51 @@ uint32_t bleach_dev(uint32_t color)
   byte b2 = 255 * (1 - health2) - b * health2;
   return strip.Color(r2, g2, b2);
 }
+
+// this will eventually be based on a data feed
+float getTemperature()
+{
+  return 25;
+}
+
+
+
+// helper functions to extract RGB components from 32-bit color, I might be duplicating existing functions
+uint8_t extractRed(uint32_t color)
+{
+  return 255;
+}
+uint8_t extractGreen(uint32_t color)
+{
+  return 255;
+}
+uint8_t extractBlue(uint32_t color)
+{
+  return 255;
+}
+
+
+
+void setGridPixel(uint8_t x, uint8_t y, uint32_t color)
+{
+  // need to set up a 2d array for this one
+}
+
+void setStrandPixel(uint8_t i, uint32_t color)
+{
+  // just a 1d array
+}
+
+void setBranchPixel(uint8_t j, uint8_t i, uint32_t color)
+{
+  // this would be a jagged array, I guess?
+}
+
+void setDonutPixel(uint8_t i, uint32_t color)
+{
+  // a bunch of 1d arrays
+}
+
 
 
 void rainbow(uint8_t wait) {
@@ -157,24 +212,6 @@ uint32_t Wheel(byte WheelPos) {
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
-void setGridPixel(uint8_t x, uint8_t y, uint32_t color)
-{
-  // need to set up a 2d array for this one
-}
 
-void setStrandPixel(uint8_t i, uint32_t color)
-{
-  // just a 1d array
-}
-
-void setBranchPixel(uint8_t j, uint8_t i, uint32_t color)
-{
-  // this would be a jagged array, I guess?
-}
-
-void setDonutPixel(uint8_t i, uint32_t color)
-{
-  // a bunch of 1d arrays
-}
 
 
