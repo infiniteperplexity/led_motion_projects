@@ -32,23 +32,102 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 }
 
+// enumerate patterns, which is the top-level choice
+enum StripMap {RAINBOW};
+static enum activePattern = RAINBOW;
+
 void loop() {
-// these are mostly what we want
-  rainbow(20);
-  rainbowCycle(20);
+  if (activePattern == RAINBOW)
+  {
+    rainbowCycle(20);
+  }
 }
+
+// the pattern definitions are the next level, but they will be listed at the end
+
+// mapped dispatch assigns various abstracted pixel numbers to numbered LEDs
+// most patterns should invoke mappedDispatch, but some might skip to pixelDispath
+enum StripMap {DEFAULT};
+StripMap activeMap = DEFAULT;
+void mappedDispatch(uint8_t pixel, uint32_t color)
+{
+  if (activeMap == DEFAULT)
+  {
+    pixelDispatch(pixel, color);
+  }
+}
+
+// pixelDispatch is independent of mpixel mapping
+void pixelDispatch(uint8_t pixel, uint32_t color)
+{
+    bleachDispatch(pixel, color);
+}
+
+// change the saturation based on the health of the coral
+void bleachedDispatch(uint8_t pixel, uint32_t color)
+{
+    strip.setPixelColor(pixel, bleach(color));
+}
+
+
+// map pixel numbers from the patterns to 
+
+
+// helper functions to extract RGB components from 32-bit color, I might be duplicating existing functions
+uint8_t getRed(uint32_t color)
+{
+  return 255;
+}
+uint8_t getGreen(uint32_t color)
+{
+  return 255;
+}
+uint8_t getBlue(uint32_t color)
+{
+  return 255;
+}
+
+
+
+
+
+uint32_t bleach(uint32_t color)
+{
+  return color;
+}
+
+uint32_t bleach_dev(uint32_t color)
+{
+  // need to revese engineer the color method from the strip
+  // but let's assume we've handled that and we've got
+  // so...
+  byte r = 255;
+  byte g = 128;
+  byte b = 0;
+  // just for example
+
+  float health2 = health/255;
+
+  byte r2 = 255 * (1 - health2) - r * health2;
+  byte g2 = 255 * (1 - health2) - g * health2;
+  byte b2 = 255 * (1 - health2) - b * health2;
+  return strip.Color(r2, g2, b2);
+}
+
 
 void rainbow(uint8_t wait) {
   uint16_t i, j;
 
   for(j=0; j<256; j++) {
     for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i+j) & 255));
+      mappedDispatch(i, Wheel((i+j) & 255));
     }
     strip.show();
     delay(wait);
   }
 }
+
+
 
 // Slightly different, this makes the rainbow equally distributed throughout
 void rainbowCycle(uint8_t wait) {
@@ -56,7 +135,7 @@ void rainbowCycle(uint8_t wait) {
 
   for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
     for(i=0; i< strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+      mappedDispatch(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
     }
     strip.show();
     delay(wait);
@@ -99,20 +178,3 @@ void setDonutPixel(uint8_t i, uint32_t color)
 }
 
 
-uint32_t bleach(uint8_t health, uint32_t color)
-{
-  // need to revese engineer the color method from the strip
-  // but let's assume we've handled that and we've got
-  // so...
-  byte r = 255;
-  byte g = 128;
-  byte b = 0;
-  // just for example
-
-  float health2 = health/255;
-
-  byte r2 = 255 * (1 - health2) - r * health2;
-  byte g2 = 255 * (1 - health2) - g * health2;
-  byte b2 = 255 * (1 - health2) - b * health2;
-  return strip.Color(r2, g2, b2);
-}
