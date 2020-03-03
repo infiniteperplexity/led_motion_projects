@@ -1,4 +1,5 @@
 #include <Adafruit_NeoPixel.h>
+
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
@@ -32,13 +33,6 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 }
 
-// time keeps on ticking...
-void tick()
-{
-  static float time = 0;
-  time += 1;
-}
-
 // enumerate patterns, which is the top-level choice
 enum Pattern {RAINBOW};
 
@@ -56,7 +50,6 @@ void loop() {
   {
     rainbowCycle(20);
   }
-  tick();
 }
 
 // the pattern definitions are the next level, but they will be listed at the end
@@ -73,7 +66,7 @@ void mappedDispatch(uint8_t pixel, uint32_t color)
   }
 }
 
-// pixelDispatch is independent of mpixel mapping
+// pixelDispatch is independent of pixel mapping
 void pixelDispatch(uint8_t pixel, uint32_t color)
 {
     bleachedDispatch(pixel, color);
@@ -92,7 +85,8 @@ uint32_t bleach(uint32_t color)
 {
   //static BleachMethod activeBleachMethod = NOBLEACH;
   //static BleachMethod activeBleachMethod = NOLIGHT;
-  static BleachMethod activeBleachMethod = BLEACHED;
+  //static BleachMethod activeBleachMethod = BLEACHED;
+  static BleachMethod activeBleachMethod = LINEAR;
   if (activeBleachMethod == NOBLEACH)
   {
     return color;
@@ -117,42 +111,58 @@ uint32_t bleach(uint32_t color)
 float getHealth()
 {
   getTemperature();
-  return 1;
+  bool desc = millis() % 20000 < 10000;
+  float health;
+  if (desc)
+  {
+    health = 1 - float((millis() % 10000)) / 10000.0;
+  }
+  else
+  {
+    health = float(millis() % 10000) / 10000.0;
+  }
+  return health;
+}
+
+float scaledBleach(float b)
+{
+  // colorness squared
+  return 1 - pow(1 - b, 1);
 }
 uint32_t linearBleach(uint32_t color)
 {
+  float bleached = 1 - getHealth();
+  bleached = scaledBleach(bleached);
   // need to revese engineer the color method from the strip
   // but let's assume we've handled that and we've got
   // so...
-  byte r = 255;
-  byte g = 128;
-  byte b = 0;
-  // just for example
-  float health = getHealth();
-
-  byte r2 = 255 * (1 - health) - r * health;
-  byte g2 = 255 * (1 - health) - g * health;
-  byte b2 = 255 * (1 - health) - b * health;
+  byte r = getRed(color);
+  byte g = getGreen(color);
+  byte b = getBlue(color);
+  byte r2 = r + (255 - r) * bleached;
+  byte g2 = g + (255 - g) * bleached;
+  byte b2 = b + (255 - b) * bleached;
   return strip.Color(r2, g2, b2);
 }
 
 // this will eventually be based on a data feed
 float getTemperature()
 {
+  millis();
   return 25;
 }
 
 
 // helper functions to extract RGB components from 32-bit color, I might be duplicating existing functions
-uint8_t extractRed(uint32_t color)
+uint8_t getRed(uint32_t color)
 {
   return (color >> 16);
 }
-uint8_t extractGreen(uint32_t color)
+uint8_t getGreen(uint32_t color)
 {
   return (color >>  8);
 }
-uint8_t extractBlue(uint32_t color)
+uint8_t getBlue(uint32_t color)
 {
   return (uint8_t) color;
 }
