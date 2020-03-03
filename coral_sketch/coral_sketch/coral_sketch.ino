@@ -50,11 +50,11 @@ void loop() {
   //static void (*pattern)(void) = &rainbow;
   if (activePattern == RAINBOW)
   {
-    rainbowCycle(20);
+    rainbow(20);
   }
   else
   {
-    rainbow(20);
+    rainbowCycle(20);
   }
   tick();
 }
@@ -63,11 +63,11 @@ void loop() {
 
 // mapped dispatch assigns various abstracted pixel numbers to numbered LEDs
 // most patterns should invoke mappedDispatch, but some might skip to pixelDispath
-enum StripMap {DEFAULT};
+enum StripMap { NOMAP };
 void mappedDispatch(uint8_t pixel, uint32_t color)
 {
-  StripMap activeMap = DEFAULT;
-  if (activeMap == DEFAULT)
+  StripMap activeMap = NOMAP;
+  if (activeMap == NOMAP)
   {
     pixelDispatch(pixel, color);
   }
@@ -76,28 +76,35 @@ void mappedDispatch(uint8_t pixel, uint32_t color)
 // pixelDispatch is independent of mpixel mapping
 void pixelDispatch(uint8_t pixel, uint32_t color)
 {
-    bleachDispatch(pixel, color);
+    bleachedDispatch(pixel, color);
 }
 
 // change the saturation based on the health of the coral
 void bleachedDispatch(uint8_t pixel, uint32_t color)
 {
     strip.setPixelColor(pixel, bleach(color));
+    //strip.setPixelColor(pixel, 0,0,0, 255);
 }
 
 // should we do these just as numbers?  
-enum BleachMethod{NOBLEACH, WHITE, LINEAR}
+enum BleachMethod{NOBLEACH, NOLIGHT, BLEACHED, LINEAR};
 uint32_t bleach(uint32_t color)
 {
-  static BleachMethod activeBleachMethod = NOBLEACH;
+  //static BleachMethod activeBleachMethod = NOBLEACH;
+  //static BleachMethod activeBleachMethod = NOLIGHT;
+  static BleachMethod activeBleachMethod = BLEACHED;
   if (activeBleachMethod == NOBLEACH)
   {
     return color;
   }
-  else if (activeBleachMethod == WHITE)
+  else if (activeBleachMethod == NOLIGHT)
   {
     // I think this is black, not white
     return 0;
+  }
+  else if (activeBleachMethod == BLEACHED)
+  {
+    return strip.Color(255, 255, 255);    
   }
   else if (activeBleachMethod == LINEAR)
   {
@@ -106,6 +113,12 @@ uint32_t bleach(uint32_t color)
   return color;
 }
 
+
+float getHealth()
+{
+  getTemperature();
+  return 1;
+}
 uint32_t linearBleach(uint32_t color)
 {
   // need to revese engineer the color method from the strip
@@ -115,12 +128,11 @@ uint32_t linearBleach(uint32_t color)
   byte g = 128;
   byte b = 0;
   // just for example
+  float health = getHealth();
 
-  float health2 = health/255;
-
-  byte r2 = 255 * (1 - health2) - r * health2;
-  byte g2 = 255 * (1 - health2) - g * health2;
-  byte b2 = 255 * (1 - health2) - b * health2;
+  byte r2 = 255 * (1 - health) - r * health;
+  byte g2 = 255 * (1 - health) - g * health;
+  byte b2 = 255 * (1 - health) - b * health;
   return strip.Color(r2, g2, b2);
 }
 
@@ -131,19 +143,18 @@ float getTemperature()
 }
 
 
-
 // helper functions to extract RGB components from 32-bit color, I might be duplicating existing functions
 uint8_t extractRed(uint32_t color)
 {
-  return 255;
+  return (color >> 16);
 }
 uint8_t extractGreen(uint32_t color)
 {
-  return 255;
+  return (color >>  8);
 }
 uint8_t extractBlue(uint32_t color)
 {
-  return 255;
+  return (uint8_t) color;
 }
 
 
@@ -211,7 +222,3 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos -= 170;
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
-
-
-
-
